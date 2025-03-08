@@ -1,0 +1,39 @@
+body {
+    font-family: Helvetica, sans-serif;
+    padding: 20px 40px;
+}
+
+.county:hover {
+    stroke: #909090;
+}
+
+#map {
+    background: slategray;
+}
+
+#tooltip {
+    position: absolute;
+    display: none;
+    background: #fff;
+    box-shadow: 3px 3px 3px 0px rgb(92 92 92 / 0.5);
+    border: 1px solid #ddd;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 8px;
+    min-width: 160px;
+    color: #333;
+}
+
+.tooltip-title {
+    color: #000;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.legend-title {
+    font-size: .7rem;
+}
+
+.legend-label {
+    font-size: .7rem;
+}
