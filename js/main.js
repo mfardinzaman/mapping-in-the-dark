@@ -8,10 +8,7 @@ d3.csv('data/aggregated_power_outages.csv').then(data => {
 
     const barChart = new BarChart(
         {
-            parentElement: '#chart',
-            containerWidth: 700,
-            containerHeight: 400,
-            margin: { top: 20, right: 20, bottom: 30, left: 60 }
+            parentElement: '#chart'
         },
         data
     );
