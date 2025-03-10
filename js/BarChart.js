@@ -26,7 +26,6 @@ class BarChart {
 
         // border box around the chart
         vis.chart.append('rect')
-            .attr('class', 'chart-box')
             .attr('x', 0)
             .attr('y', 0)
             .attr('width', vis.width)
@@ -42,14 +41,12 @@ class BarChart {
         vis.yScale = d3.scaleLinear().range([vis.height, 10]);
 
         vis.xAxisGroup = vis.chart.append('g')
-            .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${vis.height})`);
 
-        vis.yAxisGroup = vis.chart.append('g').attr('class', 'axis y-axis');
+        vis.yAxisGroup = vis.chart.append('g');
 
         // Tooltip setup
         vis.tooltip = d3.select("body").append("div")
-            .attr("class", "tooltip")
             .style("position", "absolute")
             .style("background", "white")
             .style("border", "1px solid black")
@@ -95,7 +92,6 @@ class BarChart {
 
         bars.enter()
             .append('rect')
-            .attr('class', 'bar')
             .merge(bars)
             .attr('x', d => vis.xScale(`${d.year}-${d.month}`))
             .attr('y', d => vis.yScale(d.total))
@@ -124,7 +120,6 @@ class BarChart {
         vis.xAxisGroup.selectAll('.year-label')
             .data(vis.nestedData)
             .join('text')
-            .attr('class', 'year-label')
             .attr('x', d => {
                 const months = d.months.map(m => `${m.year}-${m.month}`);
                 const firstMonth = vis.xScale(months[0]);
@@ -141,7 +136,6 @@ class BarChart {
         vis.xAxisGroup.selectAll('.month-label')
             .data(vis.nestedData.flatMap(d => d.months.filter(m => m.month % 3 === 1)))
             .join('text')
-            .attr('class', 'month-label')
             .attr('x', d => vis.xScale(`${d.year}-${d.month}`) + vis.xScale.bandwidth() / 2)
             .attr('y', 15)
             .attr('text-anchor', 'middle')
