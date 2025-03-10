@@ -1,12 +1,14 @@
 Promise.all([
     d3.json('../data/geometry_data.geojson'),
     d3.csv('../data/aggreted_power_outages_complete_no_pr.csv'),
-    d3.csv('data/aggregated_power_outages.csv')
+    d3.csv('data/aggregated_power_outages.csv'),
+    d3.csv('data/cartogram_grid.csv')
 ])
     .then((data) => {
         const geoData = data[0];
         const outageData = data[1];
-        const outageDataForBarChart = data[2];
+        const outageDataForBarChart = data[1];
+        const cartogramData = data[3];
         outageDataForBarChart.forEach(d => {
             d.year = +d.year;
             d.month = +d.month;
@@ -19,12 +21,13 @@ Promise.all([
         // Collect outage data by fips_code
         let outageMap = {};
         outageData.forEach(d => {
+
             if (d.fips_code in outageMap === false) {
                 outageMap[d.fips_code] = [];
             }
 
             outageMap[d.fips_code].push({
-                date: `${d.year}-${d.month.padStart(2, "0")}`,
+                date: `${d.year}-${String(d.month).padStart(2, "0")}`,
                 outage_count: +d.outage_count,
                 total_customers_out: +d.total_customers_out,
             });
@@ -61,11 +64,51 @@ Promise.all([
             {
                 parentElement: '#chart'
             },
-            outageDataForBarChart
+            outageData
         );
 
         barChart.updateVis();
         const choroplethMap = new ChoroplethMap({ parentElement: '#map' }, geoData);
 
+        // TODO: Incorporate M3 Changes
+        cartogramData.forEach(d => {
+            d.x = +d.x;
+            d.y = +d.y - 1;
+            // M3 TODO: change total to populaiton density metric
+            d.total = +d.total;
+            // M3 TODO: aggregate non-white data together?
+            d.white = +d["White alone"];
+            d.asian = +d["Asian alone"];
+            d.black = +d["Black or African American alone"];
+            d.indian = +d["American Indian and Alaska Native alone"];
+            d.hawaiin = +d["Native Hawaiian and Other Pacific Islander alone"];
+            d.mixed = +d["Population of two or more races:"];
+            // might be a bit redundant
+            d.pieData = [
+                { value: d.white, race: "white" },
+                { value: d.black, race: "black" },
+                { value: d.indian, race: "indian" },
+                { value: d.asian, race: "asian" },
+                { value: d.hawaiin, race: "hawaiin" },
+                { value: d.mixed, race: "mixed" }
+            ]
+        });
+
+        // // M3 TODO: aggregate non-white data together?
+        // // also change the colour scheme
+        const raceColours = {
+            "white": "blue",
+            "asian": "green",
+            "black": "black",
+            "indian": "red",
+            "hawaiin": "yellow",
+            "mixed": "#FFA500"
+        };
+
+        // Initialize the cartogram
+        const cartogram = new Cartogram({
+            parentElement: '#cartogram',
+            // Optional: other configurations
+        }, cartogramData, raceColours);
     })
     .catch(e => console.error(e))
