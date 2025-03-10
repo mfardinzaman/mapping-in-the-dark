@@ -1,15 +1,13 @@
 Promise.all([
     d3.json('../data/geometry_data.geojson'),
     d3.csv('../data/aggreted_power_outages_complete_no_pr.csv'),
-    d3.csv('data/aggregated_power_outages.csv'),
     d3.csv('data/cartogram_grid.csv')
 ])
     .then((data) => {
         const geoData = data[0];
         const outageData = data[1];
-        const outageDataForBarChart = data[1];
-        const cartogramData = data[3];
-        outageDataForBarChart.forEach(d => {
+        const cartogramData = data[2];
+        outageData.forEach(d => {
             d.year = +d.year;
             d.month = +d.month;
             d.outage_count = +d.outage_count;
