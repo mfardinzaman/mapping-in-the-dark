@@ -2,17 +2,17 @@ class ChoroplethMap {
   constructor(_config, _data) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: _config.containerWidth || 500,
-      containerHeight: _config.containerHeight || 400,
+      containerWidth: _config.containerWidth || 800,
+      containerHeight: _config.containerHeight || 600,
       margin: _config.margin || { top: 10, right: 10, bottom: 10, left: 10 },
       tooltipPadding: 10,
       legendBottom: 10,
       legendLeft: 10,
-      legendRectHeight: 12, 
+      legendRectHeight: 12,
       legendRectWidth: 150,
       colourDark: '#0e1031',
       colourLight: '#fdf6c1'
-    }
+    };
     this.data = _data;
 
     this.initVis();
@@ -46,7 +46,7 @@ class ChoroplethMap {
     vis.projection = d3.geoAlbersUsa()
     vis.geoPath = d3.geoPath().projection(vis.projection);
 
-    vis.colourScale = d3.scaleSqrt()
+    vis.colourScale = d3.scaleSymlog()
       .range([vis.config.colourLight, vis.config.colourDark])
       .interpolate(d3.interpolateHcl);
 
@@ -77,7 +77,7 @@ class ChoroplethMap {
 
         t.append('tspan')
           .attr('dx', 4)
-          .text('- Number of outages')
+          .text('- Outages per person')
       });
 
     vis.updateVis();
@@ -86,12 +86,16 @@ class ChoroplethMap {
   updateVis() {
     const vis = this;
 
+    // Value accessors
+    vis.colourValue = d => d.properties.sum_outage_count / d.properties.pop_2023;
+
     // Update colour scale
-    const outageExtent = d3.extent(vis.data.features, d => d.properties.sum_outage_count)
+    const outageExtent = d3.extent(vis.data.features, d => vis.colourValue(d))
     vis.colourScale.domain(outageExtent);
 
     // Define gradient stops
-    const legendStops = [0, 1, 10, 100, 1000, 10000, 50000, 218354];
+    const legendStops = d3.range(outageExtent[0], Math.sqrt(outageExtent[1]), Math.sqrt(outageExtent[1] / 5))
+      .map(d => d ** 2);
     
     // Choose representative values
     vis.legendStops = legendStops.map(d => {
@@ -115,12 +119,14 @@ class ChoroplethMap {
     const countyPath = vis.chart.selectAll('.county')
         .data(vis.data.features)
       .join('path')
-        .attr('class', 'county')
+        .attr('id', d => `fips-${d.properties.fips_code}`)
+        .attr('class', d => `county`)
         .attr('d', vis.geoPath)
-        .attr('fill', d => vis.colourScale(d.properties.sum_outage_count));
+        .attr('fill', d => vis.colourScale(vis.colourValue(d)));
 
     countyPath.on('mousemove', (event, d) => {
       const outages = `<strong>${d.properties.sum_outage_count}</strong> outages`;
+      const population = `<strong>${d.properties.pop_2023}</strong> people`;
       
       d3.select('#tooltip')
         .style('display', 'block')
@@ -128,7 +134,8 @@ class ChoroplethMap {
         .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
         .html(`
           <div class="tooltip-title">${d.properties.county} County</div>
-          <div>${outages}</div>`)
+          <div>${outages}</div>
+          <div>${population}</div>`)
     });
 
     countyPath.on('mouseleave', () => {
@@ -146,7 +153,7 @@ class ChoroplethMap {
         .attr('x', (d, i) => {
           return i == 0 ? 0 : vis.config.legendRectWidth;
         })
-        .text(d => d);
+        .text(d => Math.round(d));
 
     // Update gradient legend
     vis.linearGradient.selectAll('stop')

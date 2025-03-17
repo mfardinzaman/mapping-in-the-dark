@@ -2,16 +2,30 @@ Promise.all([
   d3.json("../data/geometry_data.geojson"),
   d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
   d3.csv("data/cartogram_avg_outage.csv"),
+  d3.csv('../data/pops_2019_2023_county.csv')
 ])
   .then((data) => {
     const geoData = data[0];
     const outageData = data[1];
     const cartogramData = data[2];
+    const popData = data[3];
+
     outageData.forEach((d) => {
       d.year = +d.year;
       d.month = +d.month;
       d.outage_count = +d.outage_count;
     });
+
+    const popLookup = new Map(popData.map(d => {
+      return [+d.fips_code, {
+        pop_2019: +d.pop_2019,
+        pop_2020: +d.pop_2020,
+        pop_2021: +d.pop_2021,
+        pop_2022: +d.pop_2022,
+        pop_2023: +d.pop_2023
+      }]
+    }));
+
 
     // Filter Puerto Rico
     const features = geoData.features.filter(
@@ -36,19 +50,17 @@ Promise.all([
       d.properties.fips_code = +d.properties.fips_code;
       const outage_data = outageMap[d.properties.fips_code];
 
-      if (outage_data) {
-        d.properties.outage_data = outage_data;
-        d.properties.sum_outage_count = outage_data.reduce((acc, d) => {
-          return d ? acc + d.outage_count : acc;
-        }, 0);
-        d.properties.sum_total_customers_out = outage_data.reduce((acc, d) => {
-          return d ? acc + d.total_customers_out : acc;
-        }, 0);
-      } else {
-        d.properties.outage_data = null;
-        d.properties.sum_outage_count = null;
-        d.properties.sum_total_customers_out = null;
-      }
+      d.properties.outage_data = outage_data;
+      d.properties.sum_outage_count = outage_data.reduce((acc, d) => {
+        return d ? acc + d.outage_count : acc;
+      }, 0);
+      d.properties.sum_total_customers_out = outage_data.reduce((acc, d) => {
+        return d ? acc + d.total_customers_out : acc;
+      }, 0);
+
+      const pops = popLookup.get(d.properties.fips_code)
+
+      Object.assign(d.properties, pops);
     });
 
     geoData.features = features;
