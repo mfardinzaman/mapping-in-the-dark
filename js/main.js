@@ -79,7 +79,7 @@ Promise.all([
     barChart.updateVis();
     const choroplethMap = new ChoroplethMap({ parentElement: "#map" }, geoData);
 
-    // TODO: Incorporate M3 Changes
+    // prepare cartogram + piechart data:
     cartogramData.forEach((d) => {
       d.x = +d.x;
       d.y = +d.y - 1;
@@ -100,6 +100,7 @@ Promise.all([
       d.proportionNonWhite = +d.totalNonWhite / d.total;
       d.proportionWhite = 1 - d.percentNonWhite;
 
+      // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
       d.pieData = [
         { value: d.other, race: "other" },
         { value: d.indian, race: "indian" },

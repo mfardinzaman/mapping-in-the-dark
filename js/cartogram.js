@@ -72,7 +72,8 @@ class Cartogram {
       .pie()
       .value((d) => d.value)
       .startAngle(0)
-      .endAngle(2 * Math.PI);
+      .endAngle(2 * Math.PI)
+      .sort(null); //disable automating sorting
 
     // create arc for each segment in pie chart
     vis.arcGenerator = d3
