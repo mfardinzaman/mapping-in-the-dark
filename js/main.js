@@ -115,12 +115,12 @@ Promise.all([
 
     // TODO: change colour scheme
     const raceColours = {
-      asian: "#3D7DFF", // #3D7DFF alternative: teal #00C2C2
-      black: "#2A1E6C", // #2A1E6C alt: #9a2445
-      indian: "#d30c45", // #d30c45; alt:  #E85C41"
-      hawaiin: "#65DDAE", // #069668; alt: #65DDAE
-      mixed: "#154e56", // #709f0f alt: #154e56 alt1: #E65AA0 alt2: #D9A5D9
-      other: "#dc8873", // #dc8873 alt1:  #E8C677 ; alt: #C2C8D1
+      black: "#006d2c", // #006d2c alt1: #2A1E6C alt2: #9a2445
+      asian: "#2ca25f", // #2ca25f alt1: #3D7DFF alt2: #00C2C2
+      mixed: "#66c2a4", // #66c2a4 alt1: #154e56 alt2: #E65AA0 alt3: #D9A5D9
+      indian: "#99d8c9", // #99d8c9 alt1: #d30c45; alt2:  #E85C41"
+      hawaiin: "#ccece6", // #ccece6 alt1: #069668; alt2: #65DDAE
+      other: "#edf8fb", // #edf8fb alt1: #dc8873 alt2:  #E8C677 alt3: #C2C8D1
     };
 
     // Initialize the cartogram

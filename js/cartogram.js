@@ -195,7 +195,6 @@ class Cartogram {
       .attr("fill", (d) => vis.colourScale(d.data.race))
       .style("stroke", "white")
       .style("stroke-width", "0.75px");
-    // .style("opacity", 0.7);
 
     // Add text for each State
     vis.tileGrid
