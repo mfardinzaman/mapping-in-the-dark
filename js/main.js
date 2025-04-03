@@ -2,7 +2,7 @@ Promise.all([
   d3.json("../data/geometry_data.geojson"),
   d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
   d3.csv("data/cartogram_avg_outage.csv"),
-  d3.csv('../data/pops_2019_2023_county.csv')
+  d3.csv("../data/pops_2019_2023_county.csv"),
 ])
   .then((data) => {
     const geoData = data[0];
@@ -16,16 +16,20 @@ Promise.all([
       d.outage_count = +d.outage_count;
     });
 
-    const popLookup = new Map(popData.map(d => {
-      return [+d.fips_code, {
-        pop_2019: +d.pop_2019,
-        pop_2020: +d.pop_2020,
-        pop_2021: +d.pop_2021,
-        pop_2022: +d.pop_2022,
-        pop_2023: +d.pop_2023
-      }]
-    }));
-
+    const popLookup = new Map(
+      popData.map((d) => {
+        return [
+          +d.fips_code,
+          {
+            pop_2019: +d.pop_2019,
+            pop_2020: +d.pop_2020,
+            pop_2021: +d.pop_2021,
+            pop_2022: +d.pop_2022,
+            pop_2023: +d.pop_2023,
+          },
+        ];
+      })
+    );
 
     // Filter Puerto Rico
     const features = geoData.features.filter(
@@ -58,7 +62,7 @@ Promise.all([
         return d ? acc + d.total_customers_out : acc;
       }, 0);
 
-      const pops = popLookup.get(d.properties.fips_code)
+      const pops = popLookup.get(d.properties.fips_code);
 
       Object.assign(d.properties, pops);
     });
@@ -100,7 +104,6 @@ Promise.all([
 
       // might be a bit redundant
       d.pieData = [
-        { value: d.white, race: "white" },
         { value: d.black, race: "black" },
         { value: d.indian, race: "indian" },
         { value: d.asian, race: "asian" },
@@ -110,16 +113,14 @@ Promise.all([
       ];
     });
 
-    // // M3 TODO: aggregate non-white data together?
-    // // also change the colour scheme
+    // TODO: change colour scheme
     const raceColours = {
-      white: "blue",
-      asian: "green",
-      black: "black",
-      indian: "red",
-      hawaiin: "yellow",
-      mixed: "#FFA500",
-      other: "grey",
+      asian: "#3D7DFF", // #3D7DFF alternative: teal #00C2C2
+      black: "#2A1E6C", // #2A1E6C alt: #9a2445
+      indian: "#d30c45", // #d30c45; alt:  #E85C41"
+      hawaiin: "#65DDAE", // #069668; alt: #65DDAE
+      mixed: "#154e56", // #709f0f alt: #154e56 alt1: #E65AA0 alt2: #D9A5D9
+      other: "#dc8873", // #dc8873 alt1:  #E8C677 ; alt: #C2C8D1
     };
 
     // Initialize the cartogram

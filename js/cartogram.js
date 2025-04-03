@@ -13,7 +13,7 @@ class Cartogram {
       margin: { top: 120, right: 20, bottom: 20, left: 45 },
       // M4? or M3 TODO: change square sizes and square spacing depending on size of the visualization
       minSquareSize: 70,
-      maxSquareSize: 150,
+      maxSquareSize: 200,
       squareSpacing: 80,
     };
     this.data = _data;
@@ -194,7 +194,7 @@ class Cartogram {
       .attr("d", vis.arcGenerator)
       .attr("fill", (d) => vis.colourScale(d.data.race))
       .style("stroke", "white")
-      .style("stroke-width", "2px")
+      .style("stroke-width", "0.75px")
       .style("opacity", 0.7);
 
     // Add text for each State
