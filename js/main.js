@@ -83,11 +83,11 @@ Promise.all([
     cartogramData.forEach((d) => {
       d.x = +d.x;
       d.y = +d.y - 1;
-      // M3 TODO: change total to populaiton density metric
+
       d.total = +d.total;
       d.affected = +d["average_customers_out"];
       d.proportionAffected = (d.affected / d.total) * 100;
-      // M3 TODO: aggregate non-white data together?
+
       d.white = +d["White alone"] || 0;
       d.asian = +d["Asian alone"] || 0;
       d.black = +d["Black or African American alone"] || 0;
@@ -97,31 +97,22 @@ Promise.all([
       d.other = +d["Some Other Race alone"] || 0;
 
       d.totalNonWhite = d.total - d.white;
-      // console.log(d.totalNonWhite, typeof d.totalNonWhite);
-
       d.proportionNonWhite = +d.totalNonWhite / d.total;
       d.proportionWhite = 1 - d.percentNonWhite;
 
-      // might be a bit redundant
       d.pieData = [
-        { value: d.black, race: "black" },
-        { value: d.indian, race: "indian" },
-        { value: d.asian, race: "asian" },
-        { value: d.hawaiin, race: "hawaiin" },
-        { value: d.mixed, race: "mixed" },
         { value: d.other, race: "other" },
+        { value: d.indian, race: "indian" },
+        { value: d.hawaiin, race: "hawaiin" },
+        { value: d.asian, race: "asian" },
+        { value: d.mixed, race: "mixed" },
+        { value: d.black, race: "black" },
       ];
     });
 
-    // TODO: change colour scheme
-    const raceColours = {
-      black: "#006d2c", // #006d2c alt1: #2A1E6C alt2: #9a2445
-      asian: "#2ca25f", // #2ca25f alt1: #3D7DFF alt2: #00C2C2
-      mixed: "#66c2a4", // #66c2a4 alt1: #154e56 alt2: #E65AA0 alt3: #D9A5D9
-      indian: "#99d8c9", // #99d8c9 alt1: #d30c45; alt2:  #E85C41"
-      hawaiin: "#ccece6", // #ccece6 alt1: #069668; alt2: #65DDAE
-      other: "#edf8fb", // #edf8fb alt1: #dc8873 alt2:  #E8C677 alt3: #C2C8D1
-    };
+    const raceCategories = Array.from(
+      new Set(cartogramData.flatMap((d) => d.pieData.map((p) => p.race)))
+    );
 
     // Initialize the cartogram
     const cartogram = new Cartogram(
@@ -130,7 +121,7 @@ Promise.all([
         // Optional: other configurations
       },
       cartogramData,
-      raceColours
+      raceCategories
     );
   })
   .catch((e) => console.error(e));
