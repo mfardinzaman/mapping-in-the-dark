@@ -2,7 +2,7 @@ Promise.all([
   d3.json("../data/geometry_data.geojson"),
   d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
   d3.csv("data/cartogram_avg_outage.csv"),
-  d3.csv('../data/pops_2019_2023_county.csv')
+  d3.csv("../data/pops_2019_2023_county.csv"),
 ])
   .then((data) => {
     const geoData = data[0];
@@ -15,6 +15,7 @@ Promise.all([
       d.month = +d.month;
       d.outage_count = +d.outage_count;
     });
+
 
     const popLookup = new Map(popData.map(d => {
       return [+d.fips_code, {
@@ -59,6 +60,7 @@ Promise.all([
       }, 0);
 
       const pops = popLookup.get(d.properties.fips_code);
+
       Object.assign(d.properties, pops);
     });
 
@@ -74,15 +76,15 @@ Promise.all([
     barChart.updateVis();
     const choroplethMap = new ChoroplethMap({ parentElement: "#map" }, geoData);
 
-    // TODO: Incorporate M3 Changes
+    // prepare cartogram + piechart data:
     cartogramData.forEach((d) => {
       d.x = +d.x;
       d.y = +d.y - 1;
-      // M3 TODO: change total to populaiton density metric
+
       d.total = +d.total;
       d.affected = +d["average_customers_out"];
       d.proportionAffected = (d.affected / d.total) * 100;
-      // M3 TODO: aggregate non-white data together?
+
       d.white = +d["White alone"] || 0;
       d.asian = +d["Asian alone"] || 0;
       d.black = +d["Black or African American alone"] || 0;
@@ -92,34 +94,23 @@ Promise.all([
       d.other = +d["Some Other Race alone"] || 0;
 
       d.totalNonWhite = d.total - d.white;
-      // console.log(d.totalNonWhite, typeof d.totalNonWhite);
-
       d.proportionNonWhite = +d.totalNonWhite / d.total;
       d.proportionWhite = 1 - d.percentNonWhite;
 
-      // might be a bit redundant
+      // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
       d.pieData = [
-        { value: d.white, race: "white" },
-        { value: d.black, race: "black" },
-        { value: d.indian, race: "indian" },
-        { value: d.asian, race: "asian" },
-        { value: d.hawaiin, race: "hawaiin" },
-        { value: d.mixed, race: "mixed" },
         { value: d.other, race: "other" },
+        { value: d.indian, race: "indian" },
+        { value: d.hawaiin, race: "hawaiin" },
+        { value: d.asian, race: "asian" },
+        { value: d.mixed, race: "mixed" },
+        { value: d.black, race: "black" },
       ];
     });
 
-    // // M3 TODO: aggregate non-white data together?
-    // // also change the colour scheme
-    const raceColours = {
-      white: "blue",
-      asian: "green",
-      black: "black",
-      indian: "red",
-      hawaiin: "yellow",
-      mixed: "#FFA500",
-      other: "grey",
-    };
+    const raceCategories = Array.from(
+      new Set(cartogramData.flatMap((d) => d.pieData.map((p) => p.race)))
+    );
 
     // Initialize the cartogram
     const cartogram = new Cartogram(
@@ -128,7 +119,7 @@ Promise.all([
         // Optional: other configurations
       },
       cartogramData,
-      raceColours
+      raceCategories
     );
   })
   .catch((e) => console.error(e));

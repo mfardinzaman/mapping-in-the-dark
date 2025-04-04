@@ -5,19 +5,19 @@ class Cartogram {
    * @param {Array}
    * @param {Array}
    */
-  constructor(_config, _data, _raceColours) {
+  constructor(_config, _data, _raceCategories) {
     this.config = {
       parentElement: _config.parentElement,
       containerWidth: 2000,
       containerHeight: 2000,
       margin: { top: 120, right: 20, bottom: 20, left: 45 },
-      // M4? or M3 TODO: change square sizes and square spacing depending on size of the visualization
+      // M4 TODO: change square sizes and square spacing depending on size of the visualization
       minSquareSize: 70,
-      maxSquareSize: 150,
+      maxSquareSize: 200,
       squareSpacing: 80,
     };
     this.data = _data;
-    this.raceColours = _raceColours;
+    this.raceCategories = _raceCategories;
     this.initVis();
   }
 
@@ -44,8 +44,7 @@ class Cartogram {
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     // Adds tile size scaling based on population density
-    // M4? or M3 TODO: change scaling depending on data? May want to use a scale other than square root
-    // M3 TODO: also change all instances of total population (d.total) to population density
+    // M4 TODO: change scaling depending on data? May want to use a scale other than square root
     vis.tileSizeScale = d3
       .scaleLinear()
       .domain([
@@ -63,18 +62,18 @@ class Cartogram {
       .domain([0, 0.5, 1])
       .interpolator(d3.interpolatePuOr);
 
-    // create categorical colour scale for pie chart
-    vis.colourScale = d3
-      .scaleOrdinal()
-      .domain(Object.keys(vis.raceColours))
-      .range(Object.values(vis.raceColours));
+    // pie chart colour scheme
+    vis.pieColourScale = d3
+      .scaleOrdinal(d3.schemeBuGn[vis.raceCategories.length])
+      .domain(vis.raceCategories);
 
     // create pie chart generator
     vis.pieGenerator = d3
       .pie()
       .value((d) => d.value)
       .startAngle(0)
-      .endAngle(2 * Math.PI);
+      .endAngle(2 * Math.PI)
+      .sort(null); //disable automating sorting
 
     // create arc for each segment in pie chart
     vis.arcGenerator = d3
@@ -192,10 +191,9 @@ class Cartogram {
       .data((d) => vis.pieGenerator(d.pieData))
       .join("path")
       .attr("d", vis.arcGenerator)
-      .attr("fill", (d) => vis.colourScale(d.data.race))
+      .attr("fill", (d) => vis.pieColourScale(d.data.race))
       .style("stroke", "white")
-      .style("stroke-width", "2px")
-      .style("opacity", 0.7);
+      .style("stroke-width", "0.75px");
 
     // Add text for each State
     vis.tileGrid
