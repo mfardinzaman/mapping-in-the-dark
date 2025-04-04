@@ -16,20 +16,17 @@ Promise.all([
       d.outage_count = +d.outage_count;
     });
 
-    const popLookup = new Map(
-      popData.map((d) => {
-        return [
-          +d.fips_code,
-          {
-            pop_2019: +d.pop_2019,
-            pop_2020: +d.pop_2020,
-            pop_2021: +d.pop_2021,
-            pop_2022: +d.pop_2022,
-            pop_2023: +d.pop_2023,
-          },
-        ];
-      })
-    );
+
+    const popLookup = new Map(popData.map(d => {
+      return [+d.fips_code, {
+        pop_2019: +d.pop_2019,
+        pop_2020: +d.pop_2020,
+        pop_2021: +d.pop_2021,
+        pop_2022: +d.pop_2022,
+        pop_2023: +d.pop_2023,
+        state_abbr: d.state_abbr
+      }]
+    }));
 
     // Filter Puerto Rico
     const features = geoData.features.filter(
