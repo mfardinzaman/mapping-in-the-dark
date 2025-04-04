@@ -22,10 +22,10 @@ Promise.all([
         pop_2020: +d.pop_2020,
         pop_2021: +d.pop_2021,
         pop_2022: +d.pop_2022,
-        pop_2023: +d.pop_2023
+        pop_2023: +d.pop_2023,
+        state_abbr: d.state_abbr
       }]
     }));
-
 
     // Filter Puerto Rico
     const features = geoData.features.filter(
@@ -58,8 +58,7 @@ Promise.all([
         return d ? acc + d.total_customers_out : acc;
       }, 0);
 
-      const pops = popLookup.get(d.properties.fips_code)
-
+      const pops = popLookup.get(d.properties.fips_code);
       Object.assign(d.properties, pops);
     });
 

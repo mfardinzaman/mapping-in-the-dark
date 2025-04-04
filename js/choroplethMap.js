@@ -133,7 +133,7 @@ class ChoroplethMap {
         .style('left', `${event.pageX + vis.config.tooltipPadding}px`)
         .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
         .html(`
-          <div class="tooltip-title">${d.properties.county} County</div>
+          <div class="tooltip-title"><strong>${d.properties.county} County</strong>, ${d.properties.state_abbr}</div>
           <div>${outages}</div>
           <div>${population}</div>`)
     });
