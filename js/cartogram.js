@@ -264,7 +264,7 @@ class Cartogram {
         // More non-white
         return `${Math.round(startPct)}–${Math.round(endPct)}%`;
       } else {
-        return `~50%`;
+        return `~50/50`;
       }
     };
 
@@ -286,9 +286,9 @@ class Cartogram {
       .attr("class", "legend-axis-text")
       .attr("dy", "0.75em")
       .attr("y", binHeight - 25)
-      .attr("x", vis.config.tileColourLegendRectWidth / 2 - 65)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2 - 100)
       .attr("font-size", "11px")
-      .text("← White");
+      .text("← White Majority");
 
     vis.tileColourLegend
       .append("text")
@@ -297,7 +297,7 @@ class Cartogram {
       .attr("y", binHeight - 25)
       .attr("x", vis.config.tileColourLegendRectWidth / 2 + 25)
       .attr("font-size", "11px")
-      .text("Non-White →");
+      .text("Non-White Majority →");
 
     // Title for tile color legend
     vis.tileColourLegend
