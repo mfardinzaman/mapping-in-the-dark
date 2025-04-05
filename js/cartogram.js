@@ -99,7 +99,7 @@ class Cartogram {
     // M4 TODO: Add disclaimer for racial data
 
     vis.updateVis();
-    vis.renderLegend();
+    vis.renderTileColorLegend();
   }
 
   /**
@@ -230,7 +230,7 @@ class Cartogram {
   /**
    * Initialize and render legend
    */
-  renderLegend() {
+  renderTileColorLegend() {
     let vis = this;
 
     // Configuration for tile colour bins
@@ -309,6 +309,6 @@ class Cartogram {
       .attr("text-anchor", "middle")
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
-      .text("Tile Color Legend: Percentage of White vs Non-White Population");
+      .text("State Color Legend: Proportion of White vs Non-White Population");
   }
 }
