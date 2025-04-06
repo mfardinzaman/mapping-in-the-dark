@@ -1,19 +1,22 @@
 class ChoroplethMap {
-  constructor(_config, _data) {
+  constructor(_config, _data, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: _config.containerWidth || 800,
+      containerWidth: _config.containerWidth || 1250,
       containerHeight: _config.containerHeight || 600,
       margin: _config.margin || { top: 10, right: 10, bottom: 10, left: 10 },
       tooltipPadding: 10,
       legendBottom: 10,
-      legendLeft: 10,
+      legendRight: 10,
       legendRectHeight: 12,
       legendRectWidth: 150,
       colourDark: '#0e1031',
       colourLight: '#fdf6c1'
     };
     this.data = _data;
+    this.dispatcher = _dispatcher;
+    this.selectedFips = new Set();
+    this.selectByCounty = true;
 
     this.initVis();
   }
@@ -43,7 +46,7 @@ class ChoroplethMap {
     );
 
     // Initialize projection and path generator
-    vis.projection = d3.geoAlbersUsa()
+    vis.projection = d3.geoAlbersUsa();
     vis.geoPath = d3.geoPath().projection(vis.projection);
 
     vis.colourScale = d3.scaleSymlog()
@@ -59,7 +62,10 @@ class ChoroplethMap {
       .attr('class', 'legend')
       .attr(
         'transform',
-        `translate(${vis.config.legendLeft}, ${vis.config.height - vis.config.legendBottom})`
+        `translate(
+          ${vis.config.width - vis.config.legendRight - vis.config.legendRectWidth},
+          ${vis.config.height - vis.config.legendBottom}
+        )`
       );
 
     vis.legendRect = vis.legend.append('rect')
@@ -119,28 +125,58 @@ class ChoroplethMap {
     const countyPath = vis.chart.selectAll('.county')
       .data(vis.data.features)
       .join('path')
-      .attr('id', d => `fips-${d.properties.fips_code}`)
-      .attr('class', d => `county`)
-      .attr('d', vis.geoPath)
-      .attr('fill', d => vis.colourScale(vis.colourValue(d)));
+        .attr('id', d => `fips-${d.properties.fips_code}`)
+        .attr('class', d => `county state-${d.properties.state_abbr}`)
+        .classed('county-selected', d => d.properties.selected)
+        .attr('d', vis.geoPath)
+        .attr('fill', d => vis.colourScale(vis.colourValue(d)));
 
-    countyPath.on('mousemove', (event, d) => {
-      const outages = `<strong>${d.properties.sum_outage_count}</strong> outages`;
-      const population = `<strong>${d.properties.pop_2023}</strong> people`;
+    countyPath
+      .on('mousemove', function(event, d) {
+        d3.select(this).classed('county-hover', true);
+        if (!vis.selectByCounty) {
+          d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', true);
+        }
 
-      d3.select('#tooltip')
-        .style('display', 'block')
-        .style('left', `${event.pageX + vis.config.tooltipPadding}px`)
-        .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
-        .html(`
-          <div class="tooltip-title"><strong>${d.properties.county} County</strong>, ${d.properties.state_abbr}</div>
-          <div>${outages}</div>
-          <div>${population}</div>`)
-    });
+        const outages = `<strong>${d.properties.sum_outage_count}</strong> outages`;
+        const population = `<strong>${d.properties.pop_2023}</strong> people`;
+        
+        d3.select('#tooltip')
+          .style('display', 'block')
+          .style('left', `${event.pageX + vis.config.tooltipPadding}px`)
+          .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
+          .html(`
+            <div class="tooltip-title"><strong>${d.properties.county} County</strong>, ${d.properties.state_abbr}</div>
+            <div>${outages}</div>
+            <div>${population}</div>`)
+      })
+      .on('mouseleave', function(event, d) {
+        d3.select(this).classed('county-hover', false);
+        if (!vis.selectByCounty) {
+          d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', false);
+        }
 
-    countyPath.on('mouseleave', () => {
-      d3.select('#tooltip').style('display', 'none');
-    });
+        d3.select('#tooltip').style('display', 'none');
+      })
+      .on('click', function(event, d) {
+        d.properties.selected = !d.properties.selected;
+        let counties = [d];
+
+        if (!vis.selectByCounty) {
+          counties = vis.data.features.filter(f => f.properties.state_abbr === d.properties.state_abbr);
+        }
+
+        counties.forEach(c => {
+          c.properties.selected = d.properties.selected;
+          if (c.properties.selected) {
+            vis.selectedFips.add(c.properties.fips_code);
+          } else {
+            vis.selectedFips.delete(c.properties.fips_code);
+          }
+        })
+        
+        vis.dispatcher.call('selectCounty', event, vis.selectedFips);
+      });
 
     // Add legend labels
     vis.legend.selectAll('.legend-label')
