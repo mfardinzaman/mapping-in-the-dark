@@ -161,7 +161,7 @@ class TimeLine {
       .attr("x", 20)
       .attr("font-size", "18px")
       .attr("font-weight", "bold")
-      .text("Timeline of Total Power Outages (in selected region)");
+      .text("Timeline of Total Power Outages");
 
     vis.updateVis();
   }

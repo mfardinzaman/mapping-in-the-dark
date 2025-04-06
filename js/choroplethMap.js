@@ -119,7 +119,7 @@ class ChoroplethMap {
       .attr("height", 360)
       .attr("rx", 15)
       .attr("ry", 15)
-      .attr("fill", "rgb(201, 211, 221)") // TODO delete alt: rgb(152, 173, 194) - same color as timeline box
+      .attr("fill", "rgb(201, 211, 221)")
       .attr("stroke", "black")
       .attr("stroke-width", 1)
       .attr("filter", "drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1))");
