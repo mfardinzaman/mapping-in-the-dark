@@ -4,13 +4,15 @@ const dispatcher = d3.dispatch('selectCounty', 'regionChanged');
 Promise.all([
     d3.json("../data/geometry_data.geojson"),
     d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
-    d3.csv("data/cartogram_avg_outage.csv"),
+    d3.csv("data/cartogram_monthly_outage.csv"),
     d3.csv("../data/pops_2019_2023_county.csv"),
+    d3.csv("data/cartogram_avg_outage.csv"),
 ])
 .then((data) => {
   geoData = data[0];
   outageData = data[1];
   const cartogramData = data[2];
+  const cartogramDemographicData = data[4];
   const popData = data[3];
 
   // ==========================================
@@ -90,6 +92,7 @@ Promise.all([
 
   d3.select('#reset-button')
     .on('click', function(event) {
+      if (!choroplethMap.data.features.some(d => d.properties.selected === true)) return;
       choroplethMap.data.features.forEach(d => {
         d.properties.selected = false;
       });
@@ -102,40 +105,44 @@ Promise.all([
   // Cartogram
   // ==========================================
   // prepare cartogram + piechart data:
-  cartogramData.forEach((d) => {
-    d.x = +d.x;
-    d.y = +d.y - 1;
+  
+        // prepare cartogram + piechart data:
+        // needed values: d.x, d.y, d.proportionNonWhite, pieData
+        cartogramDemographicData.forEach((d) => {
+          d.x = +d.x;
+          d.y = +d.y - 1;
+          d.white = +d["White alone"] || 0;
+          d.asian = +d["Asian alone"] || 0;
+          d.black = +d["Black or African American alone"] || 0;
+          d.indian = +d["American Indian and Alaska Native alone"] || 0;
+          d.hawaiin = +d["Native Hawaiian and Other Pacific Islander alone"] || 0;
+          d.mixed = +d["Population of two or more races:"] || 0;
+          d.other = +d["Some Other Race alone"] || 0;
 
-    d.total = +d.total;
-    d.affected = +d["average_customers_out"];
-    d.proportionAffected = (d.affected / d.total) * 100;
+          d.totalNonWhite = d.total - d.white;
+          d.proportionNonWhite = +d.totalNonWhite / d.total;
+          d.proportionWhite = 1 - d.percentNonWhite;
+          
+          // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
+          d.pieData = [
+              { value: d.other, race: "other" },
+              { value: d.indian, race: "indian" },
+              { value: d.hawaiin, race: "hawaiin" },
+              { value: d.asian, race: "asian" },
+              { value: d.mixed, race: "mixed" },
+              { value: d.black, race: "black" },
+          ];
+      })
+      // needed values: proportionAffected
+      cartogramData.forEach((d) => {
+          d.total = +d.total;
+          d.affected = +d["total_customers_out"];
+          d.proportionAffected = (d.affected / d.total) * 100;
+      });
 
-    d.white = +d["White alone"] || 0;
-    d.asian = +d["Asian alone"] || 0;
-    d.black = +d["Black or African American alone"] || 0;
-    d.indian = +d["American Indian and Alaska Native alone"] || 0;
-    d.hawaiin = +d["Native Hawaiian and Other Pacific Islander alone"] || 0;
-    d.mixed = +d["Population of two or more races:"] || 0;
-    d.other = +d["Some Other Race alone"] || 0;
-
-    d.totalNonWhite = d.total - d.white;
-    d.proportionNonWhite = +d.totalNonWhite / d.total;
-    d.proportionWhite = 1 - d.percentNonWhite;
-
-    // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
-    d.pieData = [
-      { value: d.other, race: "Other" },
-      { value: d.indian, race: "American Indian/Alaska Native" },
-      { value: d.hawaiin, race: "Native Hawaiin/Other Pacific Islander" },
-      { value: d.asian, race: "Asian" },
-      { value: d.mixed, race: "Mixed Race" },
-      { value: d.black, race: "Black/African American" },
-    ];
-  });
-
-  const raceCategories = Array.from(
-    new Set(cartogramData.flatMap((d) => d.pieData.map((p) => p.race)))
-  );
+      const raceCategories = Array.from(
+        new Set(cartogramDemographicData.flatMap((d) => d.pieData.map((p) => p.race)))
+    );
 
   // Initialize the cartogram
   const cartogram = new Cartogram(
@@ -144,6 +151,7 @@ Promise.all([
       // Optional: other configurations
     },
     cartogramData,
+    cartogramDemographicData,
     raceCategories
   );
 

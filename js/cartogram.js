@@ -5,7 +5,7 @@ class Cartogram {
    * @param {Array}
    * @param {Array}
    */
-  constructor(_config, _data, _raceCategories) {
+  constructor(_config, _data, _demographicData, _raceCategories) {
     this.config = {
       parentElement: _config.parentElement,
       containerWidth: 1250,
@@ -30,6 +30,7 @@ class Cartogram {
       pieLegendWidth: 350,
     };
     this.data = _data;
+    this.demographicData = _demographicData;
     this.raceCategories = _raceCategories;
     this.initVis();
   }
@@ -60,10 +61,6 @@ class Cartogram {
     // M4 TODO: change scaling depending on data? May want to use a scale other than square root
     vis.tileSizeScale = d3
       .scaleLinear()
-      .domain([
-        d3.min(vis.data, (d) => d.proportionAffected),
-        d3.max(vis.data, (d) => d.proportionAffected),
-      ])
       .range([minSquareSize, maxSquareSize]);
 
     // Create a group for the tile grid
@@ -138,13 +135,35 @@ class Cartogram {
   updateVis() {
     let vis = this;
     const { squareSpacing } = vis.config;
+    const groupedData = d3.groups(vis.data, d => d.State);
+
+    // TODO: filter months based on slider from bar chart
+    // Calculate the average value for each state
+    const averagedData = Array.from(groupedData, ([State, values]) => {
+      const proportionAffected = d3.mean(values, d => d.proportionAffected);
+      return { State, proportionAffected};
+    });
+
+    // combine datasets to get the cartogram data
+    vis.cartogramData = averagedData.map((d1, index) => ({
+      ...d1,
+      ...vis.demographicData[index]
+    }));
+
+    // dynamic scale
+    // TODO: Consider manually setting the scale from 0 to 100?
+    vis.tileSizeScale
+    .domain([
+      d3.min(vis.cartogramData, (d) => d.proportionAffected),
+      d3.max(vis.cartogramData, (d) => d.proportionAffected),
+    ])
 
     // Calculate x-coordinate for each State
     let currentX = -1;
     let currentXCoord = -1;
     let currentMaxX = -1;
 
-    vis.data.forEach((d) => {
+    vis.cartogramData.forEach((d) => {
       // if X-coordinate is the same, get the max tile size of the column
       if (currentX == d.x) {
         if (vis.tileSizeScale(d.proportionAffected) > currentMaxX) {
@@ -164,7 +183,7 @@ class Cartogram {
     let currentYCoord = -1;
     let nextYCoord = -1;
     // TODO (optional): refactor this to calculate both x-coordinate and y-coordinate in 1 loop instead of 2
-    vis.data.forEach((d) => {
+    vis.cartogramData.forEach((d) => {
       // check if tile is in the same column
       // if tiles aren't adjacent to eachother, place new tile based on y value and spacing
       // otherwise ignore conditional statements and place new tile vertically below previous tile
@@ -183,8 +202,8 @@ class Cartogram {
     });
 
     // Center align x-coordinates
-    vis.data.forEach((d) => {
-      let currentData = vis.data.filter((filtered) => filtered.x == d.x);
+    vis.cartogramData.forEach((d) => {
+      let currentData = vis.cartogramData.filter((filtered) => filtered.x == d.x);
       let currentMax = d3.max(currentData, (f) => f.proportionAffected);
       if (currentMax != d.proportionAffected) {
         d.xCoord =
@@ -209,7 +228,7 @@ class Cartogram {
     // Create rectangles for each State
     vis.tileGrid
       .selectAll("rect")
-      .data(vis.data)
+      .data(vis.cartogramData)
       .join("rect")
       .attr("x", (d) => d.xCoord)
       .attr("y", (d) => d.yCoord)
@@ -224,7 +243,7 @@ class Cartogram {
     // Create pie charts
     vis.tileGrid
       .selectAll("pie-chart")
-      .data(vis.data)
+      .data(vis.cartogramData)
       .join("g")
       .attr(
         "transform",
@@ -244,7 +263,7 @@ class Cartogram {
     // Add text for each State
     vis.tileGrid
       .selectAll("text")
-      .data(vis.data)
+      .data(vis.cartogramData)
       .join("text")
       .attr("x", (d) => d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2)
       .attr("y", (d) => d.yCoord + vis.tileSizeScale(d.proportionAffected) / 10)
@@ -496,7 +515,6 @@ class Cartogram {
     vis.pieLegend
       .append("text")
       .attr("class", "legend-title")
-      .attr("y", -vis.pieLegendHeight)
       .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
       .attr("text-anchor", "middle")
       .attr("font-size", "12px")
