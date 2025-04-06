@@ -55,6 +55,7 @@ class TimeLine {
     // Tooltip indicator
     vis.hoverLine = vis.chart.append('line')
       .attr('class', 'hover-line')
+      .style('pointer-events', 'none')
       .style('display', 'none');
 
     // ==========================================
