@@ -113,6 +113,7 @@ class Cartogram {
 
     vis.updateVis();
     vis.renderTileColorLegend();
+    vis.renderTileSizeLegend();
     vis.renderPieLegend();
   }
 
@@ -324,6 +325,10 @@ class Cartogram {
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text("State Color Legend: Proportion of White vs Non-White Population");
+  }
+
+  renderTileSizeLegend() {
+    let vis = this;
   }
 
   renderPieLegend() {
