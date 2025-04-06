@@ -96,7 +96,7 @@ class ChoroplethMap {
     // Define gradient stops
     const legendStops = d3.range(outageExtent[0], Math.sqrt(outageExtent[1]), Math.sqrt(outageExtent[1] / 5))
       .map(d => d ** 2);
-    
+
     // Choose representative values
     vis.legendStops = legendStops.map(d => {
       return {
@@ -117,17 +117,17 @@ class ChoroplethMap {
 
     // Append map
     const countyPath = vis.chart.selectAll('.county')
-        .data(vis.data.features)
+      .data(vis.data.features)
       .join('path')
-        .attr('id', d => `fips-${d.properties.fips_code}`)
-        .attr('class', d => `county`)
-        .attr('d', vis.geoPath)
-        .attr('fill', d => vis.colourScale(vis.colourValue(d)));
+      .attr('id', d => `fips-${d.properties.fips_code}`)
+      .attr('class', d => `county`)
+      .attr('d', vis.geoPath)
+      .attr('fill', d => vis.colourScale(vis.colourValue(d)));
 
     countyPath.on('mousemove', (event, d) => {
       const outages = `<strong>${d.properties.sum_outage_count}</strong> outages`;
       const population = `<strong>${d.properties.pop_2023}</strong> people`;
-      
+
       d3.select('#tooltip')
         .style('display', 'block')
         .style('left', `${event.pageX + vis.config.tooltipPadding}px`)
@@ -144,23 +144,23 @@ class ChoroplethMap {
 
     // Add legend labels
     vis.legend.selectAll('.legend-label')
-        .data(vis.colourScale.domain())
+      .data(vis.colourScale.domain())
       .join('text')
-        .attr('class', 'legend-label')
-        .attr('text-anchor', 'middle')
-        .attr('dy', '.35em')
-        .attr('y', 20)
-        .attr('x', (d, i) => {
-          return i == 0 ? 0 : vis.config.legendRectWidth;
-        })
-        .text(d => Math.round(d));
+      .attr('class', 'legend-label')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '.35em')
+      .attr('y', 20)
+      .attr('x', (d, i) => {
+        return i == 0 ? 0 : vis.config.legendRectWidth;
+      })
+      .text(d => Math.round(d));
 
     // Update gradient legend
     vis.linearGradient.selectAll('stop')
-        .data(vis.legendStops)
+      .data(vis.legendStops)
       .join('stop')
-        .attr('offset', d => `${d.offset}%`)
-        .attr('stop-color', d => d.colour);
+      .attr('offset', d => `${d.offset}%`)
+      .attr('stop-color', d => d.colour);
 
     vis.legendRect.attr('fill', 'url(#legend-gradient)');
   }

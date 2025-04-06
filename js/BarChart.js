@@ -33,10 +33,8 @@ class BarChart {
             .attr('fill', 'none')
             .attr('stroke', 'black');
 
-        vis.xScale = d3.scaleBand()
-            .range([0, vis.width])
-            .paddingInner(0.5)
-            .paddingOuter(0.2);
+        vis.xScale = d3.scaleTime()
+            .range([0, vis.width]);
 
         vis.yScale = d3.scaleLinear().range([vis.height, 10]);
 
@@ -53,6 +51,28 @@ class BarChart {
             .style("padding", "5px")
             .style("font-size", "12px")
             .style("display", "none");
+
+        // Add brush
+        vis.brush = d3.brushX()
+            .extent([[0, 0], [vis.width, vis.height]])
+            .on("brush end", (event) => {
+                if (!event.selection) return;
+
+                const [x0, x1] = event.selection;
+                const dateRange = [vis.xScale.invert(x0), vis.xScale.invert(x1)];
+                const startDate = vis.xScale.invert(x0);
+                const endDate = vis.xScale.invert(x1);
+
+                window.selectedStartDate = startDate;
+                window.selectedEndDate = endDate;
+                window.selectedDateRange = [startDate, endDate];
+
+                console.log("Selected time range:", dateRange);
+            });
+
+        vis.brushGroup = vis.chart.append("g")
+            .attr("class", "brush")
+            .call(vis.brush);
     }
 
     updateVis() {
@@ -73,9 +93,18 @@ class BarChart {
             return { year, months: monthsArray };
         });
 
-        const allMonths = nestedData.flatMap(d => d.months);
+        const allMonths = nestedData.flatMap(d =>
+            d.months.map(m => ({
+                ...m,
+                date: new Date(m.year, m.month - 1)
+            }))
+        );
 
-        vis.xScale.domain(allMonths.map(d => `${d.year}-${d.month}`));
+        const extent = d3.extent(allMonths, d => d.date);
+        const lastDate = new Date(extent[1]);
+        lastDate.setMonth(lastDate.getMonth() + 1);
+
+        vis.xScale.domain([extent[0], lastDate]);
 
         const maxOutage = d3.max(allMonths, d => d.total);
         vis.yScale.domain([0, maxOutage]);
@@ -88,14 +117,23 @@ class BarChart {
         let vis = this;
 
         const bars = vis.chart.selectAll('.bar')
-            .data(vis.nestedData.flatMap(d => d.months), d => `${d.year}-${d.month}`);
+            .data(vis.nestedData.flatMap(d => d.months.map(m => ({
+                ...m,
+                date: new Date(m.year, m.month - 1)
+            }))), d => d.date);
+
 
         bars.enter()
             .append('rect')
             .merge(bars)
-            .attr('x', d => vis.xScale(`${d.year}-${d.month}`))
+            .attr('x', d => vis.xScale(d.date))
             .attr('y', d => vis.yScale(d.total))
-            .attr('width', vis.xScale.bandwidth())
+            .attr('width', d => {
+                const nextMonth = new Date(d.year, d.month);
+                const barWidth = vis.xScale(nextMonth) - vis.xScale(d.date);
+                return Math.max(0, barWidth - 8);
+            })
+
             .attr('height', d => vis.height - vis.yScale(d.total))
             .attr('fill', 'steelblue')
 
@@ -121,10 +159,9 @@ class BarChart {
             .data(vis.nestedData)
             .join('text')
             .attr('x', d => {
-                const months = d.months.map(m => `${m.year}-${m.month}`);
-                const firstMonth = vis.xScale(months[0]);
-                const lastMonth = vis.xScale(months[months.length - 1]);
-                return (firstMonth + lastMonth) / 2;
+                const firstDate = new Date(d.year, d.months[0].month - 1);
+                const lastDate = new Date(d.year, d.months[d.months.length - 1].month);
+                return (vis.xScale(firstDate) + vis.xScale(lastDate)) / 2;
             })
             .attr('y', 35)
             .attr('text-anchor', 'middle')
@@ -136,7 +173,11 @@ class BarChart {
         vis.xAxisGroup.selectAll('.month-label')
             .data(vis.nestedData.flatMap(d => d.months.filter(m => m.month % 3 === 1)))
             .join('text')
-            .attr('x', d => vis.xScale(`${d.year}-${d.month}`) + vis.xScale.bandwidth() / 2)
+            .attr('x', d => {
+                const date = new Date(d.year, d.month - 1);
+                const nextMonth = new Date(d.year, d.month);
+                return vis.xScale(date) + (vis.xScale(nextMonth) - vis.xScale(date)) / 2;
+            })
             .attr('y', 15)
             .attr('text-anchor', 'middle')
             .text(d => d.monthName)
