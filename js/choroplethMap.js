@@ -47,8 +47,8 @@ class ChoroplethMap {
       .append("g")
       .attr(
         "transform",
-        `translate(${vis.config.margin.top}, ${
-          vis.config.margin.left + vis.config.titlePadding
+        `translate(${vis.config.margin.left}, ${
+          vis.config.margin.top + vis.config.titlePadding
         })`
       );
 

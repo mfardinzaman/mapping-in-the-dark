@@ -27,6 +27,17 @@ h2 {
   color: rgb(47, 5, 83);
 }
 
+.instruction-box {
+  background-color: #f9f9f9; /* Light background color */
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid black;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
+  max-width: 600px; /* Optional: Limit width of the box */
+  margin: 20px auto;
+  font-size: 15px;
+}
+
 #chart {
   width: 1300px; /* Adjust to your desired width */
   margin: 20px auto; /* Centers the container horizontally */
