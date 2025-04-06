@@ -161,10 +161,6 @@ h2 {
     brightness(94%) contrast(101%);
 }
 
-#map svg {
-  background: slategray;
-}
-
 #chart .tick line {
   color: lightgrey;
 }

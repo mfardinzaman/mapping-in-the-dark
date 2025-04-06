@@ -3,7 +3,7 @@ class TimeLine {
     this.config = {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1250,
-      containerHeight: _config.containerHeight || 140,
+      containerHeight: _config.containerHeight || 140, // TODO revert to original? 140
       margin: _config.margin || { top: 10, right: 5, bottom: 50, left: 50 },
       tooltipPadding: 10,
       gradientColours: ["#0e1031", "#fdf6c1"],
@@ -17,6 +17,7 @@ class TimeLine {
 
   initVis() {
     let vis = this;
+    vis.config.titlePadding = 30;
 
     vis.width =
       vis.config.containerWidth -
@@ -31,13 +32,14 @@ class TimeLine {
       .select(vis.config.parentElement)
       .append("svg")
       .attr("width", vis.config.containerWidth)
-      .attr("height", vis.config.containerHeight);
+      .attr("height", vis.config.containerHeight + vis.config.titlePadding);
 
     // Add background rect:
     vis.svg
       .append("rect")
+      .attr("class", "background-rect")
       .attr("width", vis.config.containerWidth)
-      .attr("height", vis.config.containerHeight)
+      .attr("height", vis.config.containerHeight + vis.config.titlePadding)
       .attr("rx", 15)
       .attr("fill", "rgb(152, 173, 194)");
 
@@ -45,7 +47,9 @@ class TimeLine {
       .append("g")
       .attr(
         "transform",
-        `translate(${vis.config.margin.left}, ${vis.config.margin.top})`
+        `translate(${vis.config.margin.left}, ${
+          vis.config.margin.top + vis.config.titlePadding
+        })`
       );
 
     vis.format = d3.format(",");
@@ -68,10 +72,8 @@ class TimeLine {
 
     vis.yAxis = d3
       .axisLeft(vis.yScale)
+      .ticks(5)
       .tickSize(-vis.width)
-      .tickFormat((d, i, ticks) =>
-        i === 0 || i === ticks.length - 1 ? vis.format(d) : ""
-      )
       .tickSizeOuter(0);
 
     vis.yAxisGroup = vis.chart.append("g").attr("class", "axis y-axis");
@@ -150,6 +152,15 @@ class TimeLine {
       .append("g")
       .attr("class", "brush")
       .call(vis.brush);
+
+    // Add chart title
+    vis.svg
+      .append("text")
+      .attr("class", "chart-title")
+      .attr("y", 30)
+      .attr("x", 20)
+      .attr("font-size", "18px")
+      .text("Timeline of Total Power Outages (Jan 2019 to Dec 2023)");
 
     vis.updateVis();
   }
