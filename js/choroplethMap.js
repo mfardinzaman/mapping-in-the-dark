@@ -74,12 +74,7 @@ class ChoroplethMap {
       .attr(
         "transform",
         `translate(
-          ${
-            vis.config.width -
-            vis.config.legendRight -
-            vis.config.legendRectWidth -
-            150
-          },
+          ${20},
           ${vis.config.height - vis.config.legendBottom}
         )`
       );
@@ -104,24 +99,24 @@ class ChoroplethMap {
     vis.svg
       .append("text")
       .attr("class", "chart-title")
-      .attr("y", 20)
+      .attr("y", 23)
       .attr("x", 20)
       .attr("font-size", "18px")
       .attr("font-weight", "bold")
-      .text("Map of Power Outages Across US Counties");
+      .text("Map of Power Outages Across US Counties (in selected time range)");
 
     // Create group for instructions box
     vis.instructionsGroup = vis.svg
       .append("g")
       .attr("class", "instructions")
-      .attr("transform", `translate(${10}, ${35})`);
+      .attr("transform", `translate(${10}, ${80})`);
 
     // Append background rectangle for instructions
     vis.instructionsGroup
       .append("rect")
       .attr("class", "instructions-rect")
       .attr("width", 300)
-      .attr("height", 300)
+      .attr("height", 360)
       .attr("rx", 15)
       .attr("ry", 15)
       .attr("fill", "rgb(201, 211, 221)") // TODO delete alt: rgb(152, 173, 194) - same color as timeline box
@@ -140,11 +135,15 @@ class ChoroplethMap {
     // Add instruction items
     const instructions = [
       {
-        text: "Use view selector to toggle between geographic (map) view and state grid views",
+        text: "Use view selector to toggle between geographic (map) and state (grid) views",
         type: "main",
       },
       {
-        text: "Hover over map and timeline to view details",
+        text: "Hover over charts to view details",
+        type: "main",
+      },
+      {
+        text: "By default, timeline shows total outages across the US",
         type: "main",
       },
       {
@@ -153,42 +152,109 @@ class ChoroplethMap {
       },
       { text: "Map View Only:", type: "heading" },
       {
-        text: "Switch between county and state selections using region selector",
-        type: "sub",
+        text: "By default, geographic map shows outages per person from 2019 to 2023",
+        type: "main",
       },
       {
-        text: "Click region(s) to update timeline with outage details",
-        type: "sub",
+        text: "Switch between county and state selections using region selector",
+        type: "main",
+      },
+      {
+        text: "Click region(s) on map to update timeline with outage details",
+        type: "main",
       },
     ];
 
     let yOffset = 50;
+    const maxLineWidth = 255;
+
+    // TODO - credit chatGPT with how to wrap text
+    const wrapText = (
+      text,
+      x,
+      y,
+      prefix,
+      fontSize = "13px",
+      fontWeight = "normal"
+    ) => {
+      const words = text.split(/\s+/);
+      const lineHeight = 18;
+      let line = [];
+
+      const textEl = vis.instructionsGroup
+        .append("text")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("font-size", fontSize)
+        .attr("font-weight", fontWeight);
+
+      let tspan = textEl
+        .append("tspan")
+        .attr("x", x)
+        .attr("dy", 0)
+        .text(prefix);
+
+      words.forEach((word) => {
+        line.push(word);
+        tspan.text(prefix + line.join(" "));
+        if (tspan.node().getComputedTextLength() > maxLineWidth) {
+          line.pop();
+          tspan.text(prefix + line.join(" "));
+          line = [word];
+          tspan = textEl
+            .append("tspan")
+            .attr("x", x)
+            .attr("dy", lineHeight)
+            .text(line.join(" "));
+        }
+      });
+
+      return lineHeight * (textEl.selectAll("tspan").size() - 1) + lineHeight;
+    };
 
     instructions.forEach((item) => {
       const { text, type } = item;
 
-      // Add extra spacing before heading
-      if (type === "heading") {
-        yOffset += 10;
+      const xOffset = type === "main" ? 25 : type === "heading" ? 25 : 0;
+      const bullet = type === "main" ? "• " : "";
+      const maxLineLength = 40;
+
+      const words = text.split(" ");
+      let lines = [];
+      let currentLine = [];
+
+      words.forEach((word) => {
+        const testLine = [...currentLine, word].join(" ");
+        if (testLine.length > maxLineLength) {
+          lines.push(currentLine.join(" "));
+          currentLine = [word];
+        } else {
+          currentLine.push(word);
+        }
+      });
+      if (currentLine.length) {
+        lines.push(currentLine.join(" "));
       }
 
-      const line = vis.instructionsGroup
+      const lineHeight = 16;
+
+      const lineGroup = vis.instructionsGroup
         .append("text")
-        .attr("x", type === "main" ? 25 : type === "sub" ? 40 : 25)
+        .attr("x", xOffset)
         .attr("y", yOffset)
         .attr("font-size", type === "heading" ? "14px" : "13px")
         .attr("font-weight", type === "heading" ? "bold" : "normal");
 
-      // Add bullet or just text
-      if (type === "main") {
-        line.text(`• ${text}`);
-      } else if (type === "sub") {
-        line.text(`◦ ${text}`); // or use "-" or "–" if you prefer
-      } else {
-        line.text(text); // heading
-      }
+      lines.forEach((line, i) => {
+        lineGroup
+          .append("tspan")
+          .attr("x", xOffset)
+          .attr("dy", i === 0 ? 0 : lineHeight)
+          .text(i === 0 ? bullet + line : line);
+      });
 
-      yOffset += 20;
+      yOffset += lines.length * lineHeight + 4;
+      if (type === "heading") yOffset += 5;
     });
 
     vis.updateVis();
