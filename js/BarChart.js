@@ -3,7 +3,7 @@ class TimeLine {
     this.config = {
       parentElement: _config.parentElement,
       containerWidth: _config.containerWidth || 1250,
-      containerHeight: _config.containerHeight || 140, // TODO revert to original? 140
+      containerHeight: _config.containerHeight || 140,
       margin: _config.margin || { top: 10, right: 5, bottom: 50, left: 50 },
       tooltipPadding: 10,
       gradientColours: ["#0e1031", "#fdf6c1"],
