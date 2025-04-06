@@ -8,38 +8,56 @@
 </head>
 <body>    
     <!-- Add HTML content, SVG drawing area, ... -->
-    <div id="chart"></div>
-    <div id="map">
-        <div class="segmented-control-container">
-            <span class="segmented-label">Select by:</span>
+     
+    <!-- Selection Widget -->
+    <div id="map-view-selector" class="segmented-control-container">
+        <span class="segmented-label">Select map view:</span>
 
-            <div class="segmented-controls">
-                <input type="radio" id="county" name="region" checked>
-                <label for="county">County</label>
-                
-                <input type="radio" id="state" name="region">
-                <label for="state">State</label>
+        <div class="segmented-controls">
+            <input type="radio" id="select-choropleth" name="map-view" checked>
+            <label for="select-choropleth">Map View</label>
+            
+            <input type="radio" id="select-cartogram" name="map-view">
+            <label for="select-cartogram">Grid View</label>
 
-                <div class="slider"></div>
-            </div>
-
-            <div class="separator"></div>
-
-            <button id="reset-button" type="button">
-                <img src="assets/images/reset.svg">
-            </button>
+            <div class="slider"></div>
         </div>
+    </div>
+
+    <div id="chart"></div>
+    <div id="view-container">
+        <div id="map">
+            <div id="region-selector" class="segmented-control-container">
+                <span class="segmented-label">Select by:</span>
+
+                <div class="segmented-controls">
+                    <input type="radio" id="county" name="region" checked>
+                    <label for="county">County</label>
+                    
+                    <input type="radio" id="state" name="region">
+                    <label for="state">State</label>
+
+                    <div class="slider"></div>
+                </div>
+
+                <div class="separator"></div>
+
+                <button id="reset-button" type="button">
+                    <img src="assets/images/reset.svg">
+                </button>
+            </div>
+        </div>
+        <div id="cartogram" class="hidden"></div>
     </div>
     <div id="tooltip"></div>
     
     <!-- D3 bundle -->
     <script src="js/d3.v6.min.js"></script>
-    <div id="cartogram"></div>
 
     <!-- Our JS code -->
     <script src="js/BarChart.js"></script>
-    <script src="js/main.js"></script>
     <script src="js/choroplethMap.js"></script>
     <script src="js/cartogram.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

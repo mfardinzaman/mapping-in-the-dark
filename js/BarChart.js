@@ -29,6 +29,8 @@ class TimeLine {
     vis.chart = vis.svg.append('g')
       .attr('transform', `translate(${vis.config.margin.left}, ${vis.config.margin.top})`);
 
+    vis.format = d3.format(',');
+
     vis.xScale = d3.scaleTime()
       .range([0, vis.width]);
     
@@ -46,7 +48,7 @@ class TimeLine {
     
     vis.yAxis = d3.axisLeft(vis.yScale)
       .tickSize(-vis.width)
-      .tickFormat((d, i, ticks) => (i === 0 || i === ticks.length - 1) ? d : '')
+      .tickFormat((d, i, ticks) => (i === 0 || i === ticks.length - 1) ? vis.format(d) : '')
       .tickSizeOuter(0);
 
     vis.yAxisGroup = vis.chart.append('g')
@@ -188,8 +190,6 @@ class TimeLine {
                 + vis.config.margin.left
                 + vis.config.tooltipPadding;
 
-          const format = d3.format(",")
-
           const xPos = d3.pointer(event, this)[0],
                 date = vis.xScale.invert(xPos),
                 i = vis.bisect(flatData, date, 1),
@@ -201,7 +201,7 @@ class TimeLine {
             .style('display', 'block')
             .style("left", `${vis.xScale(vis.xVal(d)) + leftOffset}px`)
             .style("top", `${event.pageY - vis.config.tooltipPadding}px`)
-            .html(`<div class="tooltip-title"><strong>${d.monthName} ${d.year}</strong>: ${format(d.total)} outages</div>`);
+            .html(`<div class="tooltip-title"><strong>${d.monthName} ${d.year}</strong>: ${vis.format(d.total)} outages</div>`);
 
           vis.hoverLine
             .raise()
