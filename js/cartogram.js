@@ -8,13 +8,22 @@ class Cartogram {
   constructor(_config, _data, _raceCategories) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 2000,
-      containerHeight: 2000,
-      margin: { top: 120, right: 20, bottom: 20, left: 45 },
+      containerWidth: 1300,
+      containerHeight: 1000,
+      margin: { top: 120, right: 20, bottom: 20, left: 20 },
       // M4 TODO: change square sizes and square spacing depending on size of the visualization
       minSquareSize: 70,
       maxSquareSize: 200,
       squareSpacing: 80,
+      tileColourLegendBottom: 10,
+      tileColourLegendLeft: 150,
+      tileColourLegendRectHeight: 12,
+      tileColourLegendRectWidth: 500,
+      numBins: 11,
+      pieLegendBottom: 550,
+      pieLegendLeft: 200,
+      pieLegendHeight: 200,
+      pieLegendWidth: 350,
     };
     this.data = _data;
     this.raceCategories = _raceCategories;
@@ -56,6 +65,24 @@ class Cartogram {
     // Create a group for the tile grid
     vis.tileGrid = vis.svg.append("g").attr("class", "tile-grid");
 
+    // Empty group for the tile colour legend
+    vis.tileColourLegend = vis.svg
+      .append("g")
+      .attr("class", "legend")
+      .attr(
+        "transform",
+        `translate(${vis.config.tileColourLegendLeft}, ${vis.config.tileColourLegendBottom})`
+      );
+
+    // Empty group for pie chart legend
+    vis.pieLegend = vis.svg
+      .append("g")
+      .attr("class", "legend")
+      .attr(
+        "transform",
+        `translate(${vis.config.pieLegendLeft}, ${vis.config.pieLegendBottom})`
+      );
+
     // diverging colour scale for tile grid
     vis.gridColourScale = d3
       .scaleDiverging()
@@ -73,7 +100,7 @@ class Cartogram {
       .value((d) => d.value)
       .startAngle(0)
       .endAngle(2 * Math.PI)
-      .sort(null); //disable automating sorting
+      .sort(null); // disable automatic sorting
 
     // create arc for each segment in pie chart
     vis.arcGenerator = d3
@@ -82,9 +109,12 @@ class Cartogram {
       // M4? or M3 TODO: Change sizes of pie charts
       .outerRadius(minSquareSize * 0.3);
 
-    // M4 TODO: Add tooltips for pie charts/tilegrid
+    // M4 TODO: Add disclaimer for racial data
 
     vis.updateVis();
+    vis.renderTileColorLegend();
+    vis.renderTileSizeLegend();
+    vis.renderPieLegend();
   }
 
   /**
@@ -151,6 +181,9 @@ class Cartogram {
             2;
       }
     });
+
+    // M4 TODO: Add tooltips for pie charts/tilegrid
+
     vis.renderVis();
   }
 
@@ -207,16 +240,165 @@ class Cartogram {
       .attr("fill", "black")
       .attr("font-size", "12px")
       .text((d) => d.abbr);
-
-    // M4 TODO: Add disclaimer for racial data
-
-    vis.renderLegend();
   }
 
   /**
    * Initialize and render legend
    */
-  renderLegend() {
-    // M4 TODO: Add a Legend
+  renderTileColorLegend() {
+    let vis = this;
+
+    // Configuration for tile colour bins
+    const binWidth = vis.config.tileColourLegendRectWidth / vis.config.numBins;
+    const binHeight = vis.config.tileColourLegendRectHeight;
+    const binValues = d3.range(0, 1 + 1e-9, 1 / vis.config.numBins);
+
+    // Draw binned rectangles
+    vis.tileColourLegend
+      .selectAll("rect")
+      .data(d3.pairs(binValues)) // turns [0,0.2,0.4,...] into [[0,0.2], [0.2,0.4], ...]
+      .join("rect")
+      .attr("class", `legend-element-tile-color`)
+      .attr("x", (d, i) => i * binWidth)
+      .attr("width", binWidth)
+      .attr("height", binHeight)
+      .attr("fill", (d) => vis.gridColourScale((d[0] + d[1]) / 2))
+      .attr("stroke", "black")
+      .attr("stroke-width", 0.5);
+
+    // Generate text labels for tile color legend bins --- TODO credit chatGPT
+    const tileColorLabelText = (start, end) => {
+      const startPct = Math.round(start * 100);
+      const endPct = Math.round(end * 100);
+      const mid = (start + end) / 2;
+
+      if (end <= 0.5) {
+        // More white
+        return `${100 - endPct}–${100 - startPct}%`;
+      } else if (start >= 0.5) {
+        // More non-white
+        return `${Math.round(startPct)}–${Math.round(endPct)}%`;
+      } else {
+        return `~50/50`;
+      }
+    };
+
+    // Add bin labels below each rect
+    vis.tileColourLegend
+      .selectAll("text")
+      .data(d3.pairs(binValues))
+      .join("text")
+      .attr("class", `legend-element-race-distribution`)
+      .attr("x", (d, i) => i * binWidth + binWidth / 2)
+      .attr("y", binHeight + 12)
+      .attr("text-anchor", "middle")
+      .style("font-size", "9px")
+      .text((d) => tileColorLabelText(d[0], d[1]));
+
+    // Add legend axis text
+    vis.tileColourLegend
+      .append("text")
+      .attr("class", "legend-axis-text")
+      .attr("dy", "0.75em")
+      .attr("y", binHeight - 25)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2 - 105)
+      .attr("font-size", "11px")
+      .text("← White Majority");
+
+    vis.tileColourLegend
+      .append("text")
+      .attr("class", "legend-axis-text")
+      .attr("dy", "0.75em")
+      .attr("y", binHeight - 25)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2 + 25)
+      .attr("font-size", "11px")
+      .text("Non-White Majority →");
+
+    // Title for tile color legend
+    vis.tileColourLegend
+      .append("text")
+      .attr("class", "legend-title")
+      .attr("dy", ".35em")
+      .attr("y", -30)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("State Color Legend: Proportion of White vs Non-White Population");
+  }
+
+  renderTileSizeLegend() {
+    let vis = this;
+  }
+
+  renderPieLegend() {
+    let vis = this;
+
+    const swatchSize = 12;
+    const swatchSpacing = 22;
+    const legendPadding = 10;
+
+    // legend background
+    vis.pieLegend
+      .append("rect")
+      .attr("x", -legendPadding)
+      .attr("y", -legendPadding - 15)
+      .attr("width", vis.config.pieLegendWidth)
+      .attr("height", vis.config.pieLegendHeight)
+      .attr("fill", "white")
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1)
+      .attr("rx", 10)
+      .attr("ry", 10);
+
+    // legend title
+    vis.pieLegend
+      .append("text")
+      .attr("class", "legend-title")
+      .attr("y", -vis.pieLegendHeight)
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("Pie Chart: Racial Distribution of Non-White Population");
+
+    // Add legend entry group
+    const legendEntries = vis.pieLegend
+      .selectAll(".legend-entry")
+      .data([...vis.raceCategories].reverse())
+      .join("g")
+      .attr("class", "legend-entry")
+      .attr("transform", (d, i) => `translate(0, ${i * swatchSpacing + 20})`);
+
+    // Append swatches
+    legendEntries
+      .append("rect")
+      .attr("x", 10)
+      .attr("width", swatchSize)
+      .attr("height", swatchSize)
+      .attr("fill", (d) => vis.pieColourScale(d))
+      .attr("stroke", "black")
+      .attr("stroke-width", 0.5);
+
+    // Append legend Labels
+    legendEntries
+      .append("text")
+      .attr("x", swatchSize + 20)
+      .attr("y", swatchSize / 2 + 4)
+      .attr("font-size", "11px")
+      .text((d) => d);
+
+    // Append disclaimer
+    vis.pieLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
+      .attr("font-size", "9.5px")
+      .attr("font-style", "italic")
+      .attr("text-anchor", "middle")
+      .attr("y", vis.config.pieLegendHeight - legendPadding * 3.5)
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .text(
+        "Racial categories and data are based on the 2020 US Decennial Census"
+      );
   }
 }
