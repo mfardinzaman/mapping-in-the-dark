@@ -71,7 +71,7 @@ class Cartogram {
     // TODO: Consider whether to dynamically or manually scale
     vis.tileSizeScale = d3
       .scaleLinear()
-      .domain([0, 75])
+      .domain([0, 100])
       .range([minSquareSize, maxSquareSize]);
 
     // Create a group for the tile grid
