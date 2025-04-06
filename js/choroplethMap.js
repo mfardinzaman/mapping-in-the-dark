@@ -138,8 +138,10 @@ class ChoroplethMap {
           d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', true);
         }
 
-        const outages = `<strong>${d.properties.sum_outage_count}</strong> outages`;
-        const population = `<strong>${d.properties.pop_2023}</strong> people`;
+        const format = d3.format(",")
+
+        const outages = `<strong>${format(d.properties.sum_outage_count)}</strong> outages`;
+        const population = `<strong>${format(d.properties.pop_2023)}</strong> people`;
         
         d3.select('#tooltip')
           .style('display', 'block')

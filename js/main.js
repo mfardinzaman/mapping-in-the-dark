@@ -1,4 +1,4 @@
-let geoData, outageData, barChart, choroplethMap;
+let geoData, outageData, timeline, choroplethMap;
 const dispatcher = d3.dispatch('selectCounty', 'regionChanged');
 
 Promise.all([
@@ -14,7 +14,7 @@ Promise.all([
     const popData = data[3];
 
     // ==========================================
-    // Bar chart
+    // Time line
     // ==========================================
     outageData.forEach((d) => {
       d.fips_code = +d.fips_code;
@@ -38,8 +38,8 @@ Promise.all([
     });
 
     const mapContainerWidth = document.querySelector("#map").getBoundingClientRect().width;
-    barChart = new BarChart({ parentElement: "#chart", containerWidth: mapContainerWidth }, outageData, dispatcher);
-    barChart.updateVis();
+    timeline = new TimeLine({ parentElement: "#chart", containerWidth: mapContainerWidth }, outageData, dispatcher);
+    timeline.updateVis();
 
     // ==========================================
     // Choropleth Map
@@ -153,8 +153,8 @@ Promise.all([
 dispatcher.on('selectCounty', selectedFips => {
   choroplethMap.updateVis();
 
-  barChart.selectedFips = selectedFips;
-  barChart.updateVis();
+  timeline.selectedFips = selectedFips;
+  timeline.updateVis();
 })
 
 dispatcher.on('regionChanged', region => {

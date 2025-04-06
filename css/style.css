@@ -113,6 +113,15 @@ body {
     background: slategray;
 }
 
+#chart .tick line {
+    color: lightgrey;
+}
+
+.hover-line {
+    stroke: rgb(77, 77, 77);
+    stroke-dasharray: 4;
+}
+
 #tooltip {
     position: absolute;
     display: none;
