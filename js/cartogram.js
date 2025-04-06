@@ -20,8 +20,12 @@ class Cartogram {
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
       numBins: 11,
+      tileSizeLegendBottom: 260, // TODO - adjust tile size legend location
+      tileSizeLegendLeft: 450,
+      tileSizeLegendHeight: 330,
+      tileSizeLegendWidth: 330,
       pieLegendBottom: 550,
-      pieLegendLeft: 200,
+      pieLegendLeft: 500, // TODO - adjust pie chart legend location
       pieLegendHeight: 200,
       pieLegendWidth: 350,
     };
@@ -72,6 +76,15 @@ class Cartogram {
       .attr(
         "transform",
         `translate(${vis.config.tileColourLegendLeft}, ${vis.config.tileColourLegendBottom})`
+      );
+
+    // Empty group for the tile size legend
+    vis.tileSizeLegend = vis.svg
+      .append("g")
+      .attr("class", "legend")
+      .attr(
+        "transform",
+        `translate(${vis.config.tileSizeLegendLeft}, ${vis.config.tileSizeLegendBottom})`
       );
 
     // Empty group for pie chart legend
@@ -329,6 +342,134 @@ class Cartogram {
 
   renderTileSizeLegend() {
     let vis = this;
+    // TODO Remove this? this is here mainly to visualize what I'm doing
+    vis.tileSizeLegend
+      .append("rect")
+      .attr("x", vis.config.tileSizeLegendLeft)
+      .attr("y", vis.config.tileSizeLegendBottom)
+      .attr("width", vis.config.tileSizeLegendWidth)
+      .attr("height", vis.config.tileSizeLegendHeight)
+      .attr("fill", "white")
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1)
+      .attr("rx", 10)
+      .attr("ry", 10);
+
+    // Sample propportion values for legend
+    const legendValues = [100, 75, 50, 25, 10, 5, 1];
+    const spacing = 25;
+
+    // Legend title
+    vis.tileSizeLegend
+      .append("text")
+      .attr("x", vis.config.tileSizeLegendLeft + spacing * 1.5)
+      .attr("y", vis.config.tileSizeLegendBottom + spacing)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("State Size: Percentage of Affected Population");
+
+    // Append disclaimer
+    vis.tileSizeLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
+      .attr("font-size", "10px")
+      .attr("font-style", "italic")
+      .attr("text-anchor", "middle")
+      .attr("x", vis.config.tileSizeLegendLeft + spacing * 6.5)
+      .attr("y", vis.config.tileSizeLegendBottom + spacing * 1.7)
+      .text("Normalized by total state population in 2020");
+
+    // Starting position for the largest square
+    const startX = vis.config.tileSizeLegendLeft + spacing * 2.5;
+    const startY = vis.config.tileSizeLegendBottom + spacing * 2.5;
+
+    // draw square and label for each square
+    // For each value, draw a square and label
+    legendValues.forEach((value, i) => {
+      const size = vis.tileSizeScale(value);
+
+      // Draw square
+      vis.tileSizeLegend
+        .append("rect")
+        .attr("class", `legend-icon cat cat${value}`)
+        .attr("x", startX)
+        .attr("y", startY)
+        .attr("width", size)
+        .attr("height", size)
+        .attr("fill", "grey")
+        .attr("opacity", 0.2)
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
+    });
+
+    // Add labels with connecting lines
+    legendValues.forEach((value, i) => {
+      const size = vis.tileSizeScale(value);
+      const labelY = startY + size; // Position at bottom of each square
+      const labelX = startX - 10; //Horizontal position to the left of the squares
+
+      // Spread out smallest two values (1%, 5%)
+      let labelYOffset = 0;
+      let labelXOffset = 0;
+
+      if (value === 1) {
+        labelYOffset = -28;
+        labelXOffset = -20;
+      } else if (value === 5) {
+        labelYOffset = -14;
+        labelXOffset = -20;
+      }
+
+      // Add text label
+      vis.tileSizeLegend
+        .append("text")
+        .attr("class", `legend-label cat cat${value}`)
+        .attr("x", labelX + labelXOffset)
+        .attr("y", labelY + labelYOffset)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", "11px")
+        .text(`${value}%`);
+
+      // Add connecting lines with bends for 1% and 5%
+      let bendXOffset = -3;
+      if (value === 1) bendXOffset = -6;
+      if (value === 1 || value === 5) {
+        // Create path with horizontal and vertical segments for bent line
+        vis.tileSizeLegend
+          .append("path")
+          .attr("d", () => {
+            // TODO -- credit Claude for creating bent line
+            // Start at text position + gap
+            const startX = labelX + labelXOffset + 5;
+            const startY = labelY + labelYOffset;
+
+            // Horizontal line to the right
+            const bendX = labelX - bendXOffset;
+
+            // Vertical line down to square bottom level
+            const endY = labelY;
+
+            // Horizontal line to square
+            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${
+              labelX + 10
+            },${endY}`;
+          })
+          .attr("fill", "none")
+          .attr("stroke", "black")
+          .attr("stroke-width", 1);
+      } else {
+        // For other values, use a simple horizontal line
+        vis.tileSizeLegend
+          .append("line")
+          .attr("x1", labelX + labelXOffset + 5)
+          .attr("y1", labelY + labelYOffset)
+          .attr("x2", startX)
+          .attr("y2", labelY)
+          .attr("stroke", "black")
+          .attr("stroke-width", 1);
+      }
+    });
   }
 
   renderPieLegend() {
