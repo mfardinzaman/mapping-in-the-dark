@@ -173,58 +173,58 @@ class ChoroplethMap {
     vis.projection.fitSize([vis.config.width, vis.config.height], vis.data);
 
     vis.countyPaths = vis.chart.selectAll('.county')
-        .data(vis.data.features, d => d.properties.fips_code)
+      .data(vis.data.features, d => d.properties.fips_code)
       .join('path')
-        .attr('id', d => `fips-${d.properties.fips_code}`)
-        .attr('class', d => `county state-${d.properties.state_abbr}`)
-        .classed('county-selected', d => d.properties.selected)
-        .attr('d', vis.geoPath)
-        .on('mousemove', function (event, d) {
-          d3.select(this).classed('county-hover', true);
-          if (!vis.selectByCounty) {
-            d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', true);
-          }
+      .attr('id', d => `fips-${d.properties.fips_code}`)
+      .attr('class', d => `county state-${d.properties.state_abbr}`)
+      .classed('county-selected', d => d.properties.selected)
+      .attr('d', vis.geoPath)
+      .on('mousemove', function (event, d) {
+        d3.select(this).classed('county-hover', true);
+        if (!vis.selectByCounty) {
+          d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', true);
+        }
 
-          const format = d3.format(",");
-          const outages = `<strong>${format(d.properties.sum_outage_count)}</strong> outages`;
-          const population = `<strong>${format(d.properties.pop_2023)}</strong> people`;
+        const format = d3.format(",");
+        const outages = `<strong>${format(d.properties.sum_outage_count)}</strong> outages`;
+        const population = `<strong>${format(d.properties.pop_2023)}</strong> people`;
 
-          d3.select('#tooltip')
-            .style('display', 'block')
-            .style('left', `${event.pageX + vis.config.tooltipPadding}px`)
-            .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
-            .html(`
+        d3.select('#tooltip')
+          .style('display', 'block')
+          .style('left', `${event.pageX + vis.config.tooltipPadding}px`)
+          .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
+          .html(`
             <div class="tooltip-title"><strong>${d.properties.county} County</strong>, ${d.properties.state_abbr}</div>
             <div>${outages}</div>
             <div>${population}</div>`);
-        })
-        .on('mouseleave', function (event, d) {
-          d3.select(this).classed('county-hover', false);
-          if (!vis.selectByCounty) {
-            d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', false);
+      })
+      .on('mouseleave', function (event, d) {
+        d3.select(this).classed('county-hover', false);
+        if (!vis.selectByCounty) {
+          d3.selectAll(`.state-${d.properties.state_abbr}`).classed('county-hover', false);
+        }
+
+        d3.select('#tooltip').style('display', 'none');
+      })
+      .on('click', function (event, d) {
+        d.properties.selected = !d.properties.selected;
+        let counties = [d];
+
+        if (!vis.selectByCounty) {
+          counties = vis.data.features.filter(f => f.properties.state_abbr === d.properties.state_abbr);
+        }
+
+        counties.forEach(c => {
+          c.properties.selected = d.properties.selected;
+          if (c.properties.selected) {
+            vis.selectedFips.add(c.properties.fips_code);
+          } else {
+            vis.selectedFips.delete(c.properties.fips_code);
           }
-
-          d3.select('#tooltip').style('display', 'none');
-        })
-        .on('click', function (event, d) {
-          d.properties.selected = !d.properties.selected;
-          let counties = [d];
-
-          if (!vis.selectByCounty) {
-            counties = vis.data.features.filter(f => f.properties.state_abbr === d.properties.state_abbr);
-          }
-
-          counties.forEach(c => {
-            c.properties.selected = d.properties.selected;
-            if (c.properties.selected) {
-              vis.selectedFips.add(c.properties.fips_code);
-            } else {
-              vis.selectedFips.delete(c.properties.fips_code);
-            }
-          });
-
-          vis.dispatcher.call('selectCounty', event, vis.selectedFips);
         });
+
+        vis.dispatcher.call('selectCounty', event, vis.selectedFips);
+      });
 
     // Append map
     vis.countyPaths.each(function (d) {

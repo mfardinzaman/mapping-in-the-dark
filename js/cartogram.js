@@ -33,7 +33,7 @@ class Cartogram {
     this.demographicData = _demographicData;
     this.raceCategories = _raceCategories;
     this.dispatcher = _dispatcher;
-    
+
     this.dispatcher.on('timeRangeChanged.cartogram', ({ startDate, endDate }) => {
       this.selectedStartDate = startDate;
       this.selectedEndDate = endDate;
@@ -158,7 +158,7 @@ class Cartogram {
     } else {
       filteredData = vis.data
     }
-    
+
     const { squareSpacing } = vis.config;
     const groupedData = d3.groups(filteredData, d => d.State);
 
@@ -166,7 +166,7 @@ class Cartogram {
     // Calculate the average value for each state
     const averagedData = Array.from(groupedData, ([State, values]) => {
       const proportionAffected = d3.mean(values, d => d.proportionAffected);
-      return { State, proportionAffected};
+      return { State, proportionAffected };
     });
 
     // combine datasets to get the cartogram data
@@ -228,7 +228,7 @@ class Cartogram {
           d.xCoord +
           (vis.tileSizeScale(currentMax) -
             vis.tileSizeScale(d.proportionAffected)) /
-            2;
+          2;
       }
     });
 
@@ -267,8 +267,7 @@ class Cartogram {
       .attr(
         "transform",
         (d) =>
-          `translate(${
-            d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2
+          `translate(${d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2
           },${d.yCoord + vis.tileSizeScale(d.proportionAffected) / 2})`
       )
       .selectAll("path")
@@ -489,9 +488,8 @@ class Cartogram {
             const endY = labelY;
 
             // Horizontal line to square
-            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${
-              labelX + 10
-            },${endY}`;
+            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${labelX + 10
+              },${endY}`;
           })
           .attr("fill", "none")
           .attr("stroke", "black")
