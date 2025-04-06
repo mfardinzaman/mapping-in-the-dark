@@ -5,10 +5,10 @@ class Cartogram {
    * @param {Array}
    * @param {Array}
    */
-  constructor(_config, _data, _demographicData, _raceCategories) {
+  constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1250,
+      containerWidth: 2000,
       containerHeight: 1000,
       margin: { top: 120, right: 20, bottom: 20, left: 20 },
       // M4 TODO: change square sizes and square spacing depending on size of the visualization
@@ -32,6 +32,14 @@ class Cartogram {
     this.data = _data;
     this.demographicData = _demographicData;
     this.raceCategories = _raceCategories;
+    this.dispatcher = _dispatcher;
+    
+    this.dispatcher.on('timeRangeChanged.cartogram', ({ startDate, endDate }) => {
+      this.selectedStartDate = startDate;
+      this.selectedEndDate = endDate;
+      this.updateVis();
+    });
+
     this.initVis();
   }
 
@@ -137,8 +145,22 @@ class Cartogram {
    */
   updateVis() {
     let vis = this;
+    let filteredData;
+    if (this.selectedStartDate) {
+      const start = vis.selectedStartDate;
+      const end = vis.selectedEndDate;
+
+
+      filteredData = vis.data.filter(item => {
+        return start <= item.date && item.date <= end;
+      });
+      if (filteredData.length === 0) filteredData = vis.data;
+    } else {
+      filteredData = vis.data
+    }
+    
     const { squareSpacing } = vis.config;
-    const groupedData = d3.groups(vis.data, d => d.State);
+    const groupedData = d3.groups(filteredData, d => d.State);
 
     // TODO: filter months based on slider from bar chart
     // Calculate the average value for each state
@@ -238,9 +260,10 @@ class Cartogram {
 
     // Create pie charts
     vis.tileGrid
-      .selectAll("pie-chart")
+      .selectAll(".pie-chart")
       .data(vis.cartogramData)
       .join("g")
+      .attr('class', 'pie-chart')
       .attr(
         "transform",
         (d) =>

@@ -1,5 +1,5 @@
-let geoData, outageData, timeline, choroplethMap;
-const dispatcher = d3.dispatch('selectCounty', 'regionChanged');
+let geoData, outageData, timeline, choroplethMap, selectedStartDate, selectedEndDate;
+const dispatcher = d3.dispatch('selectCounty', 'resetCounty', 'regionChanged', 'timeRangeChanged');
 
 Promise.all([
     d3.json("../data/geometry_data.geojson"),
@@ -39,7 +39,8 @@ Promise.all([
     });
   });
 
-  timeline = new TimeLine({ parentElement: "#chart" }, outageData, dispatcher);
+  // const mapContainerWidth = document.querySelector("#map").getBoundingClientRect().width;
+  timeline = new TimeLine({ parentElement: "#chart"}, outageData, dispatcher);
   timeline.updateVis();
 
   // ==========================================
@@ -92,13 +93,7 @@ Promise.all([
 
   d3.select('#reset-button')
     .on('click', function(event) {
-      if (!choroplethMap.data.features.some(d => d.properties.selected === true)) return;
-      choroplethMap.data.features.forEach(d => {
-        d.properties.selected = false;
-      });
-      choroplethMap.selectedFips = new Set();
-      
-      dispatcher.call('selectCounty', event, choroplethMap.selectedFips);
+      dispatcher.call('resetCounty', event);
     })
 
   // ==========================================
@@ -139,6 +134,7 @@ Promise.all([
           d.total = +d.total;
           d.affected = +d["avg_customers_out"];
           d.proportionAffected = (d.affected / d.total) * 100;
+          d.date = new Date(`2020-${String(+d["month"]).padStart(2, "0")}`)
       });
 
       const raceCategories = Array.from(
@@ -153,7 +149,8 @@ Promise.all([
     },
     cartogramData,
     cartogramDemographicData,
-    raceCategories
+    raceCategories,
+    dispatcher
   );
 
   d3.selectAll('#map-view-selector input')
@@ -178,6 +175,32 @@ dispatcher.on('selectCounty', selectedFips => {
   timeline.updateVis();
 })
 
-dispatcher.on('regionChanged', region => {
-  choroplethMap.selectByCounty = region === 'county';
+dispatcher.on('resetCounty', () => {
+  choroplethMap.data.features.forEach(d => {
+    d.properties.selected = false;
+  });
+
+  choroplethMap.selectedFips = new Set();
+  choroplethMap.updateVis();
+
+  timeline.selectedFips = new Set();
+  timeline.updateVis();
 })
+
+dispatcher.on('regionChanged', region => {
+    choroplethMap.selectByCounty = region === 'county';
+})
+
+dispatcher.on('timeRangeChanged.main', ({ startDate, endDate }) => {
+    selectedStartDate = startDate;
+    selectedEndDate = endDate;
+
+    const title = d3.select("#map-title");
+
+    if (!startDate || !endDate) {
+        title.text("Outages per person (2019 – 2023)");
+    } else {
+        const formatter = d3.timeFormat("%b %Y");
+        title.text(`Outages per person (${formatter(startDate)} – ${formatter(endDate)})`);
+    }
+});
