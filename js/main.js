@@ -169,9 +169,21 @@ Promise.all([
 .catch((e) => console.error(e));
 
 dispatcher.on('selectCounty', selectedFips => {
+    choroplethMap.updateVis();
+
+    timeline.selectedFips = selectedFips;
+    timeline.updateVis();
+})
+
+dispatcher.on('resetCounty', () => {
+  choroplethMap.data.features.forEach(d => {
+    d.properties.selected = false;
+  });
+
+  choroplethMap.selectedFips = new Set();
   choroplethMap.updateVis();
 
-  timeline.selectedFips = selectedFips;
+  timeline.selectedFips = new Set();
   timeline.updateVis();
 })
 
@@ -204,3 +216,5 @@ dispatcher.on('timeRangeChanged.main', ({ startDate, endDate }) => {
         title.text(`Outages per person (${formatter(startDate)} – ${formatter(endDate)})`);
     }
 });
+
+

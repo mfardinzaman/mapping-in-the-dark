@@ -18,12 +18,11 @@ class ChoroplethMap {
     this.selectedFips = new Set();
     this.selectByCounty = true;
 
-    // TODO: currently turned off interaction with choropleth to reduce lag, add it back later
-    // this.dispatcher.on('timeRangeChanged.choropleth', ({ startDate, endDate }) => {
-    //   this.selectedStartDate = startDate;
-    //   this.selectedEndDate = endDate;
-    //   this.updateVis();
-    // });
+    this.dispatcher.on('timeRangeChanged.choropleth', ({ startDate, endDate }) => {
+      this.selectedStartDate = startDate;
+      this.selectedEndDate = endDate;
+      this.updateVis();
+    });
 
     this.initVis();
   }
