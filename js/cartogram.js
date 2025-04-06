@@ -20,6 +20,10 @@ class Cartogram {
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
       numBins: 11,
+      tileSizeLegendBottom: 515, // TODO - adjust tile size legend dimensions
+      tileSizeLegendLeft: 430,
+      tileSizeLegendHeight: 300,
+      tileSizeLegendWidth: 500,
       pieLegendBottom: 550,
       pieLegendLeft: 200,
       pieLegendHeight: 200,
@@ -72,6 +76,15 @@ class Cartogram {
       .attr(
         "transform",
         `translate(${vis.config.tileColourLegendLeft}, ${vis.config.tileColourLegendBottom})`
+      );
+
+    // Empty group for the tile size legend
+    vis.tileSizeLegend = vis.svg
+      .append("g")
+      .attr("class", "legend")
+      .attr(
+        "transform",
+        `translate(${vis.config.tileSizeLegendLeft}, ${vis.config.tileSizeLegendBottom})`
       );
 
     // Empty group for pie chart legend
@@ -329,6 +342,22 @@ class Cartogram {
 
   renderTileSizeLegend() {
     let vis = this;
+    // Population Affected by Power Outages
+    // Normalized by total state population
+    // Affected Population
+
+    // TODO Remove this? this is here mainly to visualize what I'm doing
+    vis.tileSizeLegend
+      .append("rect")
+      .attr("x", vis.config.tileColourLegendLeft)
+      .attr("y", vis.config.tileColourLegendBottom)
+      .attr("width", vis.config.tileSizeLegendWidth)
+      .attr("height", vis.config.tileSizeLegendHeight)
+      .attr("fill", "grey")
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1)
+      .attr("rx", 10)
+      .attr("ry", 10);
   }
 
   renderPieLegend() {
