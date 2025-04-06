@@ -160,7 +160,8 @@ class TimeLine {
       .attr("y", 30)
       .attr("x", 20)
       .attr("font-size", "18px")
-      .text("Timeline of Total Power Outages (Jan 2019 to Dec 2023)");
+      .attr("font-weight", "bold")
+      .text("Timeline of Total Power Outages (in selected region)");
 
     vis.updateVis();
   }
