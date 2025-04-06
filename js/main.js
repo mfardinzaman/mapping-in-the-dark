@@ -39,8 +39,7 @@ Promise.all([
     });
   });
 
-  // const mapContainerWidth = document.querySelector("#map").getBoundingClientRect().width;
-  timeline = new TimeLine({ parentElement: "#chart"}, outageData, dispatcher);
+  timeline = new TimeLine({ parentElement: "#chart" }, outageData, dispatcher);
   timeline.updateVis();
 
   // ==========================================
@@ -173,18 +172,6 @@ dispatcher.on('selectCounty', selectedFips => {
 
     timeline.selectedFips = selectedFips;
     timeline.updateVis();
-})
-
-dispatcher.on('resetCounty', () => {
-  choroplethMap.data.features.forEach(d => {
-    d.properties.selected = false;
-  });
-
-  choroplethMap.selectedFips = new Set();
-  choroplethMap.updateVis();
-
-  timeline.selectedFips = new Set();
-  timeline.updateVis();
 })
 
 dispatcher.on('resetCounty', () => {
