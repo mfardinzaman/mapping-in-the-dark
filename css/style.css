@@ -3,9 +3,32 @@ body {
     padding: 20px 40px;
 }
 
-#map {
+#chart {
+    width: 1300px;  /* Adjust to your desired width */
+    margin: 20px auto; /* Centers the container horizontally */
+}
+
+#view-container {
     position: relative;
-    width: 1250px;
+    width: 1300px;
+    margin: 0 auto;
+}
+
+#map,
+#cartogram {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
+}
+
+#map.hidden,
+#cartogram.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .segmented-control-container {
@@ -39,7 +62,7 @@ body {
 
 .segmented-controls label {
   flex: 1;
-  min-width: 50px;
+  min-width: 80px;
   padding: 0 1rem;
   display: flex;
   align-items: center;
@@ -66,16 +89,20 @@ body {
   z-index: 1;
 }
 
-#county:checked ~ .slider {
+#county:checked ~ .slider,
+#select-choropleth:checked ~ .slider {
   transform: translateX(0);
 }
 
-#state:checked ~ .slider {
+#state:checked ~ .slider,
+#select-cartogram:checked ~ .slider {
   transform: translateX(100%);
 }
 
 #county:checked + label,
-#state:checked + label {
+#state:checked + label,
+#select-choropleth:checked + label,
+#select-cartogram:checked + label {
   font-weight: 600;
   transform: scale(1.05);
 }

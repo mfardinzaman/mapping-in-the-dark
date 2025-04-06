@@ -7,148 +7,160 @@ Promise.all([
     d3.csv("data/cartogram_avg_outage.csv"),
     d3.csv("../data/pops_2019_2023_county.csv"),
 ])
-  .then((data) => {
-    geoData = data[0];
-    outageData = data[1];
-    const cartogramData = data[2];
-    const popData = data[3];
+.then((data) => {
+  geoData = data[0];
+  outageData = data[1];
+  const cartogramData = data[2];
+  const popData = data[3];
 
-    // ==========================================
-    // Time line
-    // ==========================================
-    outageData.forEach((d) => {
-      d.fips_code = +d.fips_code;
-      d.year = +d.year;
-      d.month = +d.month;
-      d.outage_count = +d.outage_count;
+  // ==========================================
+  // Time line
+  // ==========================================
+  outageData.forEach((d) => {
+    d.fips_code = +d.fips_code;
+    d.year = +d.year;
+    d.month = +d.month;
+    d.outage_count = +d.outage_count;
+  });
+  
+  // Collect outage data by fips_code
+  let outageMap = {};
+  outageData.forEach((d) => {
+    if (d.fips_code in outageMap === false) {
+      outageMap[d.fips_code] = [];
+    }
+
+    outageMap[d.fips_code].push({
+      date: `${d.year}-${String(d.month).padStart(2, "0")}`,
+      outage_count: +d.outage_count,
+      total_customers_out: +d.total_customers_out,
     });
+  });
+
+  timeline = new TimeLine({ parentElement: "#chart" }, outageData, dispatcher);
+  timeline.updateVis();
+
+  // ==========================================
+  // Choropleth Map
+  // ==========================================
+  const popLookup = new Map(popData.map(d => {
+    return [+d.fips_code, {
+      pop_2019: +d.pop_2019,
+      pop_2020: +d.pop_2020,
+      pop_2021: +d.pop_2021,
+      pop_2022: +d.pop_2022,
+      pop_2023: +d.pop_2023,
+      state_abbr: d.state_abbr
+    }]
+  }));
+
+  // Filter Puerto Rico
+  const features = geoData.features.filter(
+    (d) => d.properties.state !== "Puerto Rico"
+  );
+
+  features.forEach((d) => {
+    d.properties.fips_code = +d.properties.fips_code;
+    d.properties.selected = false;
+
+    const outage_data = outageMap[d.properties.fips_code];
+    d.properties.outage_data = outage_data;
     
-    // Collect outage data by fips_code
-    let outageMap = {};
-    outageData.forEach((d) => {
-      if (d.fips_code in outageMap === false) {
-        outageMap[d.fips_code] = [];
-      }
+    d.properties.sum_outage_count = outage_data.reduce((acc, d) => {
+      return d ? acc + d.outage_count : acc;
+    }, 0);
+    d.properties.sum_total_customers_out = outage_data.reduce((acc, d) => {
+      return d ? acc + d.total_customers_out : acc;
+    }, 0);
 
-      outageMap[d.fips_code].push({
-        date: `${d.year}-${String(d.month).padStart(2, "0")}`,
-        outage_count: +d.outage_count,
-        total_customers_out: +d.total_customers_out,
-      });
+    const pops = popLookup.get(d.properties.fips_code);
+    Object.assign(d.properties, pops);
+  });
+
+  geoData.features = features;
+
+  choroplethMap = new ChoroplethMap({ parentElement: "#map" }, geoData, dispatcher);
+
+  // Listen for region selector event
+  d3.selectAll('#region-selector input')
+    .on('change', function(event) {
+      const region = d3.select(this).attr('id');
+      dispatcher.call('regionChanged', event, region);
     });
 
-    const mapContainerWidth = document.querySelector("#map").getBoundingClientRect().width;
-    timeline = new TimeLine({ parentElement: "#chart", containerWidth: mapContainerWidth }, outageData, dispatcher);
-    timeline.updateVis();
-
-    // ==========================================
-    // Choropleth Map
-    // ==========================================
-    const popLookup = new Map(popData.map(d => {
-      return [+d.fips_code, {
-        pop_2019: +d.pop_2019,
-        pop_2020: +d.pop_2020,
-        pop_2021: +d.pop_2021,
-        pop_2022: +d.pop_2022,
-        pop_2023: +d.pop_2023,
-        state_abbr: d.state_abbr
-      }]
-    }));
-
-    // Filter Puerto Rico
-    const features = geoData.features.filter(
-      (d) => d.properties.state !== "Puerto Rico"
-    );
-
-    features.forEach((d) => {
-      d.properties.fips_code = +d.properties.fips_code;
-      d.properties.selected = false;
-
-      const outage_data = outageMap[d.properties.fips_code];
-      d.properties.outage_data = outage_data;
+  d3.select('#reset-button')
+    .on('click', function(event) {
+      choroplethMap.data.features.forEach(d => {
+        d.properties.selected = false;
+      });
+      choroplethMap.selectedFips = new Set();
       
-      d.properties.sum_outage_count = outage_data.reduce((acc, d) => {
-        return d ? acc + d.outage_count : acc;
-      }, 0);
-      d.properties.sum_total_customers_out = outage_data.reduce((acc, d) => {
-        return d ? acc + d.total_customers_out : acc;
-      }, 0);
-
-      const pops = popLookup.get(d.properties.fips_code);
-      Object.assign(d.properties, pops);
-    });
-
-    geoData.features = features;
-
-    choroplethMap = new ChoroplethMap({ parentElement: "#map" }, geoData, dispatcher);
-
-    // Listen for region selector event
-    d3.selectAll('.segmented-controls input')
-      .on('change', function(event) {
-        const region = d3.select(this).attr('id');
-        dispatcher.call('regionChanged', event, region);
-      });
-
-    d3.select('#reset-button')
-      .on('click', function(event) {
-        choroplethMap.data.features.forEach(d => {
-          d.properties.selected = false;
-        });
-        choroplethMap.selectedFips = new Set();
-        
-        dispatcher.call('selectCounty', event, choroplethMap.selectedFips);
-      })
-
-    // ==========================================
-    // Cartogram
-    // ==========================================
-    // prepare cartogram + piechart data:
-    cartogramData.forEach((d) => {
-      d.x = +d.x;
-      d.y = +d.y - 1;
-
-            d.total = +d.total;
-            d.affected = +d["average_customers_out"];
-            d.proportionAffected = (d.affected / d.total) * 100;
-
-            d.white = +d["White alone"] || 0;
-            d.asian = +d["Asian alone"] || 0;
-            d.black = +d["Black or African American alone"] || 0;
-            d.indian = +d["American Indian and Alaska Native alone"] || 0;
-            d.hawaiin = +d["Native Hawaiian and Other Pacific Islander alone"] || 0;
-            d.mixed = +d["Population of two or more races:"] || 0;
-            d.other = +d["Some Other Race alone"] || 0;
-
-            d.totalNonWhite = d.total - d.white;
-            d.proportionNonWhite = +d.totalNonWhite / d.total;
-            d.proportionWhite = 1 - d.percentNonWhite;
-
-            // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
-            d.pieData = [
-              { value: d.other, race: "Other" },
-              { value: d.indian, race: "American Indian/Alaska Native" },
-              { value: d.hawaiin, race: "Native Hawaiin/Other Pacific Islander" },
-              { value: d.asian, race: "Asian" },
-              { value: d.mixed, race: "Mixed Race" },
-              { value: d.black, race: "Black/African American" },
-            ];
-        });
-
-        const raceCategories = Array.from(
-            new Set(cartogramData.flatMap((d) => d.pieData.map((p) => p.race)))
-        );
-
-        // Initialize the cartogram
-        const cartogram = new Cartogram(
-            {
-                parentElement: "#cartogram",
-                // Optional: other configurations
-            },
-            cartogramData,
-            raceCategories
-        );
+      dispatcher.call('selectCounty', event, choroplethMap.selectedFips);
     })
-    .catch((e) => console.error(e));
+
+  // ==========================================
+  // Cartogram
+  // ==========================================
+  // prepare cartogram + piechart data:
+  cartogramData.forEach((d) => {
+    d.x = +d.x;
+    d.y = +d.y - 1;
+
+    d.total = +d.total;
+    d.affected = +d["average_customers_out"];
+    d.proportionAffected = (d.affected / d.total) * 100;
+
+    d.white = +d["White alone"] || 0;
+    d.asian = +d["Asian alone"] || 0;
+    d.black = +d["Black or African American alone"] || 0;
+    d.indian = +d["American Indian and Alaska Native alone"] || 0;
+    d.hawaiin = +d["Native Hawaiian and Other Pacific Islander alone"] || 0;
+    d.mixed = +d["Population of two or more races:"] || 0;
+    d.other = +d["Some Other Race alone"] || 0;
+
+    d.totalNonWhite = d.total - d.white;
+    d.proportionNonWhite = +d.totalNonWhite / d.total;
+    d.proportionWhite = 1 - d.percentNonWhite;
+
+    // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
+    d.pieData = [
+      { value: d.other, race: "Other" },
+      { value: d.indian, race: "American Indian/Alaska Native" },
+      { value: d.hawaiin, race: "Native Hawaiin/Other Pacific Islander" },
+      { value: d.asian, race: "Asian" },
+      { value: d.mixed, race: "Mixed Race" },
+      { value: d.black, race: "Black/African American" },
+    ];
+  });
+
+  const raceCategories = Array.from(
+    new Set(cartogramData.flatMap((d) => d.pieData.map((p) => p.race)))
+  );
+
+  // Initialize the cartogram
+  const cartogram = new Cartogram(
+    {
+      parentElement: "#cartogram",
+      // Optional: other configurations
+    },
+    cartogramData,
+    raceCategories
+  );
+
+  d3.selectAll('#map-view-selector input')
+    .on('change', function(event) {
+      const selected = d3.select(this).attr('id'),
+            isMapView = selected == 'select-choropleth';
+
+      d3.select('#map').classed('hidden', !isMapView);
+      d3.select('#cartogram').classed('hidden', isMapView);
+
+      if (!isMapView) d3.select('#reset-button').node().click();
+      
+      timeline.brush.move(timeline.brushGroup, null);
+    });
+})
+.catch((e) => console.error(e));
 
 dispatcher.on('selectCounty', selectedFips => {
   choroplethMap.updateVis();

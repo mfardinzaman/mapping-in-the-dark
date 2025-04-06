@@ -8,7 +8,7 @@ class Cartogram {
   constructor(_config, _data, _raceCategories) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1300,
+      containerWidth: 1250,
       containerHeight: 1000,
       margin: { top: 120, right: 20, bottom: 20, left: 20 },
       // M4 TODO: change square sizes and square spacing depending on size of the visualization
