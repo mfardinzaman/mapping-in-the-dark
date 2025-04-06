@@ -1,51 +1,75 @@
 body {
-    font-family: Helvetica, sans-serif;
-    padding: 20px 40px;
+  font-family: Helvetica, sans-serif;
+  padding: 20px 40px;
+  background-color: slategray;
+}
+
+h1 {
+  font-family: "Monoton", cursive;
+  color: #755906; /* neon green, but you can use hotpink, cyan, etc. */
+  font-size: 5rem;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 5px #ffe414, 0 0 10px #ffe414, 0 0 20px #ffe414,
+    0 0 40px rgb(255, 247, 0), 0 0 80px rgb(255, 247, 0);
+}
+
+h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 3rem;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 50px;
 }
 
 #chart {
-    width: 1300px;  /* Adjust to your desired width */
-    margin: 20px auto; /* Centers the container horizontally */
+  width: 1300px; /* Adjust to your desired width */
+  margin: 20px auto; /* Centers the container horizontally */
 }
 
 #view-container {
-    position: relative;
-    width: 1300px;
-    margin: 0 auto;
+  position: relative;
+  width: 1300px;
+  margin: 0 auto;
 }
 
 #map,
 #cartogram {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 1;
-    transition: opacity 0.2s ease-in-out;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
 }
 
 #map.hidden,
 #cartogram.hidden {
-    opacity: 0;
-    pointer-events: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .segmented-control-container {
   display: flex;
   align-items: center;
-  position: absolute;
-  top:3px;
+  justify-content: center;
+  top: 3px;
   left: 50%;
-  transform: translateX(-50%);
   z-index: 10;
   background: #e2e2e9;
   border-radius: 0.3rem;
+  width: max-content;
+  margin: 0px auto;
 }
 
 .segmented-label {
   margin-right: 8px;
-  padding-left: 10px
+  padding-left: 10px;
 }
 
 .segmented-controls {
@@ -83,8 +107,7 @@ body {
   background: #fff;
   border-radius: 0.3rem;
   border: 0.5px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0px 3px 1px rgba(0, 0, 0, 0.04),
-              0px 3px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0px 3px 1px rgba(0, 0, 0, 0.04), 0px 3px 8px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s ease;
   z-index: 1;
 }
@@ -108,86 +131,87 @@ body {
 }
 
 .separator {
-    width: 1px;
-    background-color: #ccc;
-    margin: 0 0.5rem;
-    height: 1.5rem;
+  width: 1px;
+  background-color: #ccc;
+  margin: 0 0.5rem;
+  height: 1.5rem;
 }
 
 #reset-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    /* margin-left: 0.5rem; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  /* margin-left: 0.5rem; */
 }
-  
+
 #reset-button img {
-    width: 12px;
-    height: 12px;
-    transition: filter 0.3s ease;
-    padding-right: 10px;
+  width: 12px;
+  height: 12px;
+  transition: filter 0.3s ease;
+  padding-right: 10px;
 }
-  
+
 #reset-button:hover img {
-    filter: invert(34%) sepia(93%) saturate(7417%) hue-rotate(358deg) brightness(94%) contrast(101%);
+  filter: invert(34%) sepia(93%) saturate(7417%) hue-rotate(358deg)
+    brightness(94%) contrast(101%);
 }
 
 #map svg {
-    background: slategray;
+  background: slategray;
 }
 
 #chart .tick line {
-    color: lightgrey;
+  color: lightgrey;
 }
 
 .hover-line {
-    stroke: rgb(77, 77, 77);
-    stroke-dasharray: 4;
+  stroke: rgb(77, 77, 77);
+  stroke-dasharray: 4;
 }
 
 #tooltip {
-    position: absolute;
-    display: none;
-    background: #fff;
-    box-shadow: 3px 3px 3px 0px rgb(92 92 92 / 0.5);
-    border: 1px solid #ddd;
-    font-size: 10px;
-    font-weight: 500;
-    padding: 8px;
-    min-width: 160px;
-    color: #333;
-    pointer-events: none;
+  position: absolute;
+  display: none;
+  background: #fff;
+  box-shadow: 3px 3px 3px 0px rgb(92 92 92 / 0.5);
+  border: 1px solid #ddd;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 8px;
+  min-width: 160px;
+  color: #333;
+  pointer-events: none;
 }
 
 .tooltip-title {
-    color: #000;
-    font-size: 12px;
+  color: #000;
+  font-size: 12px;
 }
 
 .legend-title {
-    font-size: .7rem;
+  font-size: 0.7rem;
 }
 
 .legend-label {
-    font-size: .7rem;
+  font-size: 0.7rem;
 }
 
 .county {
-    transition: stroke 0.2s ease;
-    stroke: black;
-    stroke-opacity: 0;
-    cursor: pointer;
+  transition: stroke 0.2s ease;
+  stroke: black;
+  stroke-opacity: 0;
+  cursor: pointer;
 }
 
 .county-hover,
-.county-selected  {
-    stroke-opacity: 1;
+.county-selected {
+  stroke-opacity: 1;
 }
 
 .county-hover {
-    stroke: #909090;
+  stroke: #909090;
 }
