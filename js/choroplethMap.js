@@ -2,7 +2,7 @@ class ChoroplethMap {
   constructor(_config, _data, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: _config.containerWidth || 1250,
+      containerWidth: _config.containerWidth || 1500,
       containerHeight: _config.containerHeight || 600,
       margin: _config.margin || { top: 10, right: 10, bottom: 10, left: 10 },
       tooltipPadding: 10,
@@ -77,7 +77,8 @@ class ChoroplethMap {
           ${
             vis.config.width -
             vis.config.legendRight -
-            vis.config.legendRectWidth
+            vis.config.legendRectWidth -
+            150
           },
           ${vis.config.height - vis.config.legendBottom}
         )`
@@ -108,6 +109,87 @@ class ChoroplethMap {
       .attr("font-size", "18px")
       .attr("font-weight", "bold")
       .text("Map of Power Outages Across US Counties");
+
+    // Create group for instructions box
+    vis.instructionsGroup = vis.svg
+      .append("g")
+      .attr("class", "instructions")
+      .attr("transform", `translate(${10}, ${35})`);
+
+    // Append background rectangle for instructions
+    vis.instructionsGroup
+      .append("rect")
+      .attr("class", "instructions-rect")
+      .attr("width", 300)
+      .attr("height", 300)
+      .attr("rx", 15)
+      .attr("ry", 15)
+      .attr("fill", "rgb(201, 211, 221)") // TODO delete alt: rgb(152, 173, 194) - same color as timeline box
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .attr("filter", "drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1))");
+
+    // Add instructions title
+    vis.instructionsGroup
+      .append("text")
+      .attr("x", 15)
+      .attr("y", 30)
+      .attr("font-weight", "bold")
+      .text("Instructions:");
+
+    // Add instruction items
+    const instructions = [
+      {
+        text: "Use view selector to toggle between geographic (map) view and state grid views",
+        type: "main",
+      },
+      {
+        text: "Hover over map and timeline to view details",
+        type: "main",
+      },
+      {
+        text: "Highlight a time range in the timeline to filter map data",
+        type: "main",
+      },
+      { text: "Map View Only:", type: "heading" },
+      {
+        text: "Switch between county and state selections using region selector",
+        type: "sub",
+      },
+      {
+        text: "Click region(s) to update timeline with outage details",
+        type: "sub",
+      },
+    ];
+
+    let yOffset = 50;
+
+    instructions.forEach((item) => {
+      const { text, type } = item;
+
+      // Add extra spacing before heading
+      if (type === "heading") {
+        yOffset += 10;
+      }
+
+      const line = vis.instructionsGroup
+        .append("text")
+        .attr("x", type === "main" ? 25 : type === "sub" ? 40 : 25)
+        .attr("y", yOffset)
+        .attr("font-size", type === "heading" ? "14px" : "13px")
+        .attr("font-weight", type === "heading" ? "bold" : "normal");
+
+      // Add bullet or just text
+      if (type === "main") {
+        line.text(`• ${text}`);
+      } else if (type === "sub") {
+        line.text(`◦ ${text}`); // or use "-" or "–" if you prefer
+      } else {
+        line.text(text); // heading
+      }
+
+      yOffset += 20;
+    });
 
     vis.updateVis();
   }
