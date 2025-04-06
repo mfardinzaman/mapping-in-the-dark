@@ -20,6 +20,10 @@ class Cartogram {
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
       numBins: 11,
+      pieLegendBottom: 550,
+      pieLegendLeft: 200,
+      pieLegendHeight: 200,
+      pieLegendWidth: 350,
     };
     this.data = _data;
     this.raceCategories = _raceCategories;
@@ -70,6 +74,15 @@ class Cartogram {
         `translate(${vis.config.tileColourLegendLeft}, ${vis.config.tileColourLegendBottom})`
       );
 
+    // Empty group for pie chart legend
+    vis.pieLegend = vis.svg
+      .append("g")
+      .attr("class", "legend")
+      .attr(
+        "transform",
+        `translate(${vis.config.pieLegendLeft}, ${vis.config.pieLegendBottom})`
+      );
+
     // diverging colour scale for tile grid
     vis.gridColourScale = d3
       .scaleDiverging()
@@ -100,6 +113,7 @@ class Cartogram {
 
     vis.updateVis();
     vis.renderTileColorLegend();
+    vis.renderPieLegend();
   }
 
   /**
@@ -286,7 +300,7 @@ class Cartogram {
       .attr("class", "legend-axis-text")
       .attr("dy", "0.75em")
       .attr("y", binHeight - 25)
-      .attr("x", vis.config.tileColourLegendRectWidth / 2 - 100)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2 - 105)
       .attr("font-size", "11px")
       .text("← White Majority");
 
@@ -310,5 +324,76 @@ class Cartogram {
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text("State Color Legend: Proportion of White vs Non-White Population");
+  }
+
+  renderPieLegend() {
+    let vis = this;
+
+    const swatchSize = 12;
+    const swatchSpacing = 22;
+    const legendPadding = 10;
+
+    // legend background
+    vis.pieLegend
+      .append("rect")
+      .attr("x", -legendPadding)
+      .attr("y", -legendPadding - 15)
+      .attr("width", vis.config.pieLegendWidth)
+      .attr("height", vis.config.pieLegendHeight)
+      .attr("fill", "white")
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1)
+      .attr("rx", 10)
+      .attr("ry", 10);
+
+    // legend title
+    vis.pieLegend
+      .append("text")
+      .attr("class", "legend-title")
+      .attr("y", -vis.pieLegendHeight)
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("Pie Chart: Racial Distribution of Non-White Population");
+
+    // Add legend entry group
+    const legendEntries = vis.pieLegend
+      .selectAll(".legend-entry")
+      .data([...vis.raceCategories].reverse())
+      .join("g")
+      .attr("class", "legend-entry")
+      .attr("transform", (d, i) => `translate(0, ${i * swatchSpacing + 20})`);
+
+    // Append swatches
+    legendEntries
+      .append("rect")
+      .attr("x", 10)
+      .attr("width", swatchSize)
+      .attr("height", swatchSize)
+      .attr("fill", (d) => vis.pieColourScale(d))
+      .attr("stroke", "black")
+      .attr("stroke-width", 0.5);
+
+    // Append legend Labels
+    legendEntries
+      .append("text")
+      .attr("x", swatchSize + 20)
+      .attr("y", swatchSize / 2 + 4)
+      .attr("font-size", "11px")
+      .text((d) => d);
+
+    // Append disclaimer
+    vis.pieLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
+      .attr("font-size", "9.5px")
+      .attr("font-style", "italic")
+      .attr("text-anchor", "middle")
+      .attr("y", vis.config.pieLegendHeight - legendPadding * 3.5)
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .text(
+        "Racial categories and data are based on the 2020 US Decennial Census"
+      );
   }
 }

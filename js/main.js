@@ -103,12 +103,12 @@ Promise.all([
 
       // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
       d.pieData = [
-        { value: d.other, race: "other" },
-        { value: d.indian, race: "indian" },
-        { value: d.hawaiin, race: "hawaiin" },
-        { value: d.asian, race: "asian" },
-        { value: d.mixed, race: "mixed" },
-        { value: d.black, race: "black" },
+        { value: d.other, race: "Other" },
+        { value: d.indian, race: "American Indian/Alaska Native" },
+        { value: d.hawaiin, race: "Native Hawaiin/Other Pacific Islander" },
+        { value: d.asian, race: "Asian" },
+        { value: d.mixed, race: "Mixed Race" },
+        { value: d.black, race: "Black/African American" },
       ];
     });
 
