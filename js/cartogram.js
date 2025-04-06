@@ -59,8 +59,11 @@ class Cartogram {
 
     // Adds tile size scaling based on population density
     // M4 TODO: change scaling depending on data? May want to use a scale other than square root
+    // manualy scale
+    // TODO: Consider whether to dynamically or manually scale
     vis.tileSizeScale = d3
       .scaleLinear()
+      .domain([0, 75])
       .range([minSquareSize, maxSquareSize]);
 
     // Create a group for the tile grid
@@ -150,13 +153,6 @@ class Cartogram {
       ...vis.demographicData[index]
     }));
 
-    // dynamic scale
-    // TODO: Consider manually setting the scale from 0 to 100?
-    vis.tileSizeScale
-    .domain([
-      d3.min(vis.cartogramData, (d) => d.proportionAffected),
-      d3.max(vis.cartogramData, (d) => d.proportionAffected),
-    ])
 
     // Calculate x-coordinate for each State
     let currentX = -1;

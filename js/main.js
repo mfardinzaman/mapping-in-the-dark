@@ -4,16 +4,16 @@ const dispatcher = d3.dispatch('selectCounty', 'regionChanged');
 Promise.all([
     d3.json("../data/geometry_data.geojson"),
     d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
-    d3.csv("data/cartogram_monthly_outage.csv"),
+    d3.csv("../data/cartogram_monthly_outages.csv"),
+    d3.csv("../data/cartogram_grid_and_demographic_data.csv"),
     d3.csv("../data/pops_2019_2023_county.csv"),
-    d3.csv("data/cartogram_avg_outage.csv"),
 ])
 .then((data) => {
   geoData = data[0];
   outageData = data[1];
   const cartogramData = data[2];
-  const cartogramDemographicData = data[4];
-  const popData = data[3];
+  const cartogramDemographicData = data[3];
+  const popData = data[4];
 
   // ==========================================
   // Time line
@@ -133,10 +133,11 @@ Promise.all([
               { value: d.black, race: "black" },
           ];
       })
+      
       // needed values: proportionAffected
       cartogramData.forEach((d) => {
           d.total = +d.total;
-          d.affected = +d["total_customers_out"];
+          d.affected = +d["avg_customers_out"];
           d.proportionAffected = (d.affected / d.total) * 100;
       });
 
