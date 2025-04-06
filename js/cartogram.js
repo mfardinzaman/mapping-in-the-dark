@@ -429,7 +429,7 @@ class Cartogram {
         .attr("text-anchor", "end")
         .attr("dominant-baseline", "middle")
         .attr("font-size", "11px")
-        .text(`${value}%`);
+        .text(value <= 1 ? "≤1%" : `${value}%`);
 
       // Add connecting lines with bends for 1% and 5%
       let bendXOffset = -3;
