@@ -33,6 +33,14 @@ class TimeLine {
       .attr("width", vis.config.containerWidth)
       .attr("height", vis.config.containerHeight);
 
+    // Add background rect:
+    vis.svg
+      .append("rect")
+      .attr("width", vis.config.containerWidth)
+      .attr("height", vis.config.containerHeight)
+      .attr("rx", 15)
+      .attr("fill", "rgb(152, 173, 194)");
+
     vis.chart = vis.svg
       .append("g")
       .attr(
