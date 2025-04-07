@@ -213,10 +213,27 @@ function updateTitle(startDate, endDate) {
   const title = d3.select("#map-title");
   const formatter = d3.timeFormat("%b %Y");
 
-  const dateText =
-    !startDate || !endDate
-      ? "(2019 – 2023)"
-      : `(${formatter(startDate)} – ${formatter(endDate)})`;
+  let dateText;
+  if (isMapView) {
+    dateText =
+      !startDate || !endDate
+        ? "(2019 – 2023)"
+        : `(${formatter(startDate)} – ${formatter(endDate)})`;
+  } else {
+    if (!startDate || !endDate) {
+      dateText = "(2020)";
+    } else {
+      const startYear = startDate.getFullYear();
+      const endYear = endDate.getFullYear();
+
+      if (startYear === 2020 && endYear === 2020) {
+        dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
+      } else {
+        // If either of the dates is outside of 2020, display "2020"
+        dateText = "(2020)";
+      }
+    }
+  }
 
   const titleText = isMapView
     ? `Map of Power Outages per Person ${dateText}`
