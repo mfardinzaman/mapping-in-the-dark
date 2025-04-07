@@ -250,7 +250,7 @@ function updateTitle(startDate, endDate) {
 
   const titleText = isMapView
     ? `Map of Power Outages per Person ${dateText}`
-    : `Average Proportion of People Affected by Outages Per Month ${dateText}`;
+    : `Average Proportion of People Affected by Outages ${dateText}`;
 
   title.text(titleText);
 }

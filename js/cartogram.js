@@ -371,7 +371,7 @@ class Cartogram {
   }
 
   /**
-   * Initialize and render legend
+   * Initialize and render legends
    */
   renderTileColorLegend() {
     let vis = this;
@@ -394,7 +394,7 @@ class Cartogram {
       .attr("stroke", "black")
       .attr("stroke-width", 0.5);
 
-    // Generate text labels for tile color legend bins --- TODO credit chatGPT
+    // Generate text labels for tile color legend bins - code adapted from chatGPT
     const tileColorLabelText = (start, end) => {
       const startPct = Math.round(start * 100);
       const endPct = Math.round(end * 100);
@@ -491,11 +491,21 @@ class Cartogram {
       .attr("text-anchor", "middle")
       .attr("x", vis.config.tileSizeLegendLeft + spacing * 6)
       .attr("y", vis.config.tileSizeLegendBottom + spacing * 1.7)
-      .text("Normalized by total state population in 2020");
+      .text("Avg affected population in selected date range");
+
+    vis.tileSizeLegend
+      .append("text")
+      .attr("class", "legend-disclaimer-2")
+      .attr("font-size", "9.5px")
+      .attr("font-style", "italic")
+      .attr("text-anchor", "middle")
+      .attr("x", vis.config.tileSizeLegendLeft + spacing * 6)
+      .attr("y", vis.config.tileSizeLegendBottom + spacing * 2.2)
+      .text("normalized by 2020 state population");
 
     // Starting position for the largest square
-    const startX = vis.config.tileSizeLegendLeft + spacing * 2.5;
-    const startY = vis.config.tileSizeLegendBottom + spacing * 2.5;
+    const startX = vis.config.tileSizeLegendLeft + spacing * 3;
+    const startY = vis.config.tileSizeLegendBottom + spacing * 2.6;
 
     // draw square and label for each square
     // For each value, draw a square and label
@@ -691,9 +701,9 @@ class Cartogram {
 
     // Add disclaimer items
     const disclaimers = [
-      "Cartogram depicts 2020 data only",
+      "Cartogram displays 2020 average by default",
       "In timeline, date ranges outside of 2020 cannot be selected",
-      "Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages",
+      "Racial data reflects state-wide racial distribution in 2020, not distribution of people directly affected by outages",
       "Racial categories and data are derived from the 2020 US Decennial Census",
     ];
 
