@@ -8,26 +8,27 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1350,
-      containerHeight: 1000,
-      margin: { top: 120, right: 20, bottom: 20, left: 20 },
+      containerWidth: 1550,
+      containerHeight: 700,
+      margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
-      maxSquareSize: 200,
+      maxSquareSize: 150,
       squareSpacing: 80,
-      tileColourLegendBottom: 10,
-      tileColourLegendLeft: 150,
+      tileColourLegendBottom: 5,
+      tileColourLegendLeft: 450,
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
+      startingMapCoordinate: 400,
       numBins: 11,
       tooltipPadding: 10,
-      tileSizeLegendBottom: 270,
-      tileSizeLegendLeft: 60,
-      tileSizeLegendHeight: 320,
-      tileSizeLegendWidth: 330,
-      pieLegendBottom: 660,
-      pieLegendLeft: 470,
-      pieLegendHeight: 220,
-      pieLegendWidth: 350,
+      tileSizeLegendBottom: 120,
+      tileSizeLegendLeft: 15,
+      tileSizeLegendHeight: 230,
+      tileSizeLegendWidth: 300,
+      pieLegendBottom: 390,
+      pieLegendLeft: 30,
+      pieLegendHeight: 190,
+      pieLegendWidth: 300,
     };
     this.data = _data;
     this.demographicData = _demographicData;
@@ -60,8 +61,6 @@ class Cartogram {
       maxSquareSize,
     } = vis.config;
 
-    vis.config.titlePadding = 30;
-
     // Set up the SVG container
     vis.svg = d3
       .select(vis.config.parentElement)
@@ -69,33 +68,38 @@ class Cartogram {
       .attr("width", containerWidth)
       .attr("height", containerHeight);
 
+    vis.mainGroup = vis.svg
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
     // Add background rect
-    vis.svg
+    vis.mainGroup
       .append("rect")
       .attr("class", "background-rect")
+      .attr("x", -vis.config.margin.left)
+      .attr("y", -vis.config.margin.top)
       .attr("width", vis.config.containerWidth)
       .attr("height", vis.config.containerHeight)
       .attr("rx", 15)
       .attr("fill", "rgb(152, 173, 194)");
 
-    vis.svg = vis.svg
-      .append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
     // Adds tile size scaling based on population density
-    // M4 TODO: change scaling depending on data? May want to use a scale other than square root
-    // manualy scale
-    // TODO: Consider whether to dynamically or manually scale
     vis.tileSizeScale = d3
       .scaleLinear()
       .domain([0, 100])
       .range([minSquareSize, maxSquareSize]);
 
     // Create a group for the tile grid
-    vis.tileGrid = vis.svg.append("g").attr("class", "tile-grid");
+    vis.tileGrid = vis.mainGroup.append("g").attr("class", "tile-grid");
+
+    // empty group for disclaimers
+    vis.cartogramDisclaimer = vis.mainGroup
+      .append("g")
+      .attr("class", "cartogram-disclaimer")
+      .attr("transform", `translate(${20}, ${0})`);
 
     // Empty group for the tile colour legend
-    vis.tileColourLegend = vis.svg
+    vis.tileColourLegend = vis.mainGroup
       .append("g")
       .attr("class", "legend")
       .attr(
@@ -106,14 +110,14 @@ class Cartogram {
     // Empty group for the tile size legend
     vis.tileSizeLegend = vis.svg
       .append("g")
-      .attr("class", "legend")
+      .attr("class", "tile-size-legend")
       .attr(
         "transform",
         `translate(${vis.config.tileSizeLegendLeft}, ${vis.config.tileSizeLegendBottom})`
       );
 
     // Empty group for pie chart legend
-    vis.pieLegend = vis.svg
+    vis.pieLegend = vis.mainGroup
       .append("g")
       .attr("class", "legend")
       .attr(
@@ -144,12 +148,10 @@ class Cartogram {
     vis.arcGenerator = d3
       .arc()
       .innerRadius(0)
-      // M4? or M3 TODO: Change sizes of pie charts
       .outerRadius(minSquareSize * 0.3);
 
-    // M4 TODO: Add disclaimer for racial data
-
     vis.updateVis();
+    vis.renderCartogramDisclaimer();
     vis.renderTileColorLegend();
     vis.renderTileSizeLegend();
     vis.renderPieLegend();
@@ -178,7 +180,6 @@ class Cartogram {
     const { squareSpacing } = vis.config;
     const groupedData = d3.groups(filteredData, (d) => d.State);
 
-    // TODO: filter months based on slider from bar chart
     // Calculate the average value for each state
     const averagedData = Array.from(groupedData, ([State, values]) => {
       const proportionAffected = d3.mean(values, (d) => d.proportionAffected);
@@ -194,7 +195,7 @@ class Cartogram {
     // Calculate x-coordinate for each State
     let currentX = -1;
     let currentXCoord = -1;
-    let currentMaxX = -1;
+    let currentMaxX = vis.config.startingMapCoordinate;
 
     vis.cartogramData.forEach((d) => {
       // if X-coordinate is the same, get the max tile size of the column
@@ -215,7 +216,7 @@ class Cartogram {
     let currentY = -1;
     let currentYCoord = -1;
     let nextYCoord = -1;
-    // TODO (optional): refactor this to calculate both x-coordinate and y-coordinate in 1 loop instead of 2
+
     vis.cartogramData.forEach((d) => {
       // check if tile is in the same column
       // if tiles aren't adjacent to eachother, place new tile based on y value and spacing
@@ -278,7 +279,10 @@ class Cartogram {
           .select("#tooltip")
           .style("display", "block")
           .style("left", `${event.pageX + vis.config.tooltipPadding}px`)
-          .style("top", event.pageY + vis.config.tooltipPadding + "px").html(`
+          .style(
+            "top",
+            event.pageY - vis.config.tooltipPadding - 220 + "px"
+          ).html(`
             <div class="tooltip-title"><strong>${d.State}</strong></div>
             <div><i>Population affected by outages: ${Math.round(
               d.proportionAffected
@@ -449,15 +453,6 @@ class Cartogram {
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text("State Color Legend: Proportion of White vs Non-White Population");
-
-    vis.tileColourLegend
-      .append("text")
-      .attr("class", "legend-disclaimer")
-      .attr("y", vis.config.tileColourLegendRectHeight + 25)
-      .attr("x", vis.config.tileColourLegendRectWidth / 2)
-      .text(
-        "Racial data reflects state-wide distribution, not only individuals directly affected by outages"
-      );
   }
 
   renderTileSizeLegend() {
@@ -481,7 +476,7 @@ class Cartogram {
     // Legend title
     vis.tileSizeLegend
       .append("text")
-      .attr("x", vis.config.tileSizeLegendLeft + spacing * 1.5)
+      .attr("x", vis.config.tileSizeLegendLeft + spacing)
       .attr("y", vis.config.tileSizeLegendBottom + spacing)
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
@@ -494,7 +489,7 @@ class Cartogram {
       .attr("font-size", "10px")
       .attr("font-style", "italic")
       .attr("text-anchor", "middle")
-      .attr("x", vis.config.tileSizeLegendLeft + spacing * 6.5)
+      .attr("x", vis.config.tileSizeLegendLeft + spacing * 6)
       .attr("y", vis.config.tileSizeLegendBottom + spacing * 1.7)
       .text("Normalized by total state population in 2020");
 
@@ -551,6 +546,7 @@ class Cartogram {
         .text(value <= 1 ? "≤1%" : `${value}%`);
 
       // Add connecting lines with bends for 1% and 5%
+      // Code to create bent lines adapted from chatGPT
       let bendXOffset = -3;
       if (value === 1) bendXOffset = -6;
       if (value === 1 || value === 5) {
@@ -558,7 +554,6 @@ class Cartogram {
         vis.tileSizeLegend
           .append("path")
           .attr("d", () => {
-            // TODO -- credit Claude for creating bent line
             // Start at text position + gap
             const startX = labelX + labelXOffset + 5;
             const startY = labelY + labelYOffset;
@@ -614,12 +609,23 @@ class Cartogram {
     // legend title
     vis.pieLegend
       .append("text")
-      .attr("class", "legend-title")
+      .attr("class", "pie-legend-title")
       .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
       .attr("text-anchor", "middle")
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
-      .text("Pie Chart: Racial Distribution of Non-White Population");
+      .text("Pie Chart Legend");
+
+    // legend subtitle
+    vis.pieLegend
+      .append("text")
+      .attr("class", "pie-legend-subtitle")
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .attr("y", legendPadding + 5)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("Racial Distribution of Non-White Population");
 
     // Add legend entry group
     const legendEntries = vis.pieLegend
@@ -632,7 +638,8 @@ class Cartogram {
     // Append swatches
     legendEntries
       .append("rect")
-      .attr("x", 10)
+      .attr("x", legendPadding)
+      .attr("y", legendPadding)
       .attr("width", swatchSize)
       .attr("height", swatchSize)
       .attr("fill", (d) => vis.pieColourScale(d))
@@ -642,28 +649,106 @@ class Cartogram {
     // Append legend Labels
     legendEntries
       .append("text")
-      .attr("x", swatchSize + 20)
-      .attr("y", swatchSize / 2 + 4)
+      .attr("x", legendPadding + swatchSize + 20)
+      .attr("y", legendPadding + swatchSize / 2 + 4)
       .attr("font-size", "11px")
       .text((d) => d);
+  }
 
-    // Append disclaimer
-    vis.pieLegend
-      .append("text")
-      .attr("class", "legend-disclaimer")
-      .attr("y", vis.config.pieLegendHeight - legendPadding * 5)
-      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
-      .text(
-        "Racial categories and data are based on the 2020 US Decennial Census;"
-      );
+  renderCartogramDisclaimer() {
+    let vis = this;
+    const disclaimerHeight = 190;
+    const disclaimerWidth = vis.config.tileSizeLegendWidth;
+    const xOffset = 15;
+    let yOffset = -70;
 
-    vis.pieLegend
+    const lineHeight = 18;
+    const maxLineWidth = disclaimerWidth - 30;
+
+    vis.cartogramDisclaimer
+      .append("rect")
+      .attr("class", "cartogram-disclaimer-background")
+      .attr("y", -90)
+      .attr("width", disclaimerWidth)
+      .attr("height", disclaimerHeight)
+      .attr("fill", "rgb(201, 211, 221)")
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1)
+      .attr("rx", 10)
+      .attr("ry", 10);
+
+    // Add title
+    vis.cartogramDisclaimer
       .append("text")
-      .attr("class", "legend-disclaimer")
-      .attr("y", vis.config.pieLegendHeight - legendPadding * 3.5)
-      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
-      .text(
-        "Racial data reflects state-wide distribution, not only individuals directly affected."
-      );
+      .attr("x", xOffset)
+      .attr("y", yOffset)
+      .attr("font-size", "15px")
+      .attr("font-weight", "bold")
+      .attr("fill", "purple")
+      .text("Disclaimers:");
+
+    yOffset += 20; // add space between title and points
+
+    // Add disclaimer items
+    const disclaimers = [
+      "Cartogram depicts 2020 data only",
+      "In timeline, date ranges outside of 2020 cannot be selected",
+      "Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages",
+      "Racial categories and data are derived from the 2020 US Decennial Census",
+    ];
+
+    // Wrap text (adapted from chatGPT)
+    const wrapText = (text, x, y, prefix = "") => {
+      const words = text.split(/\s+/);
+      let line = [];
+      let tspanCount = 0;
+
+      const textEl = vis.cartogramDisclaimer
+        .append("text")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("font-size", "13px")
+        .attr("fill", "black");
+
+      let tspan = textEl
+        .append("tspan")
+        .attr("x", x)
+        .attr("dy", 0)
+        .text(prefix);
+
+      words.forEach((word) => {
+        line.push(word);
+        tspan.text(prefix + line.join(" "));
+        if (tspan.node().getComputedTextLength() > maxLineWidth) {
+          line.pop();
+          tspan.text(prefix + line.join(" "));
+          line = [word];
+          prefix = ""; // no bullet on wrapped lines
+          tspan = textEl
+            .append("tspan")
+            .attr("x", x)
+            .attr("dy", lineHeight)
+            .text(word);
+          tspanCount++;
+        }
+      });
+
+      if (line.length && tspan.text() !== prefix + line.join(" ")) {
+        tspan = textEl
+          .append("tspan")
+          .attr("x", x)
+          .attr("dy", lineHeight)
+          .text(prefix + line.join(" "));
+        tspanCount++;
+      }
+
+      return (tspanCount + 1) * lineHeight;
+    };
+
+    // Render each disclaimer item
+    disclaimers.forEach((text) => {
+      const heightAdded = wrapText(text, xOffset, yOffset, "• ");
+      yOffset += heightAdded + 4;
+    });
   }
 }

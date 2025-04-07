@@ -16,7 +16,7 @@ const dispatcher = d3.dispatch(
 Promise.all([
   d3.json("../data/geometry_data.geojson"),
   d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
-  d3.csv("../data/cartogram_monthly_outages.csv"),
+  d3.csv("../data/cartogram_average_monthly_outages.csv"),
   d3.csv("../data/cartogram_grid_and_demographic_data.csv"),
   d3.csv("../data/pops_2019_2023_county.csv"),
 ])
@@ -234,7 +234,7 @@ function updateTitle(startDate, endDate) {
     } else {
       const startYear = startDate.getFullYear();
       const endYear = endDate.getFullYear();
-      console.log(startDate);
+
       if (startYear === 2020 && endYear === 2020) {
         dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
       } else if (startYear === 2020) {
