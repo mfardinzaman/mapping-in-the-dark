@@ -46,7 +46,7 @@ Promise.all([
       }
 
       outageMap[d.fips_code].push({
-        date: `${d.year}-${String(d.month).padStart(2, "0")}`,
+        date: new Date(`${d.year}-${String(d.month).padStart(2, "0")}`),
         outage_count: +d.outage_count,
         total_customers_out: +d.total_customers_out,
       });
@@ -98,7 +98,14 @@ Promise.all([
       }, 0);
 
       const pops = popLookup.get(d.properties.fips_code);
-      Object.assign(d.properties, pops);
+      d.properties.populations = [
+        { year: 2019, population: pops.pop_2019 },
+        { year: 2020, population: pops.pop_2020 },
+        { year: 2021, population: pops.pop_2021 },
+        { year: 2022, population: pops.pop_2021 },
+        { year: 2023, population: pops.pop_2023 }
+      ]
+      d.properties.state_abbr = pops.state_abbr;
     });
 
     geoData.features = features;

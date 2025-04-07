@@ -298,15 +298,26 @@ class ChoroplethMap {
             d3.sum(d.properties.outage_data, (o) => o.outage_count);
         } else {
           const filtered = d.properties.outage_data.filter((o) => {
-            const oDate = new Date(o.date);
-            return oDate >= start && oDate <= end;
+            return o.date >= start && o.date <= end;
           });
           sum = d3.sum(filtered, (o) => o.outage_count);
         }
         d.properties.cache[key] = sum;
       }
 
-      const pop = d.properties.pop_2023;
+      let pop;
+
+      if (start && end) {
+        const [ startYear, endYear ] = [ start, end ].map(y => y.getFullYear());
+        const fPops = d.properties.populations.filter(p => {
+          return p.year >= startYear && p.year <= endYear;
+        });
+
+        pop = d3.mean(fPops, p => p.population);
+      } else {
+        pop = d.properties.populations.find((p) => p.year === 2023).population;
+      }
+
       return pop > 0 ? d.properties.cache[key] / pop : 0;
     };
 
@@ -365,13 +376,28 @@ class ChoroplethMap {
           );
         }
 
+        let outages,
+            pop;
+
+        if (vis.selectedStartDate && vis.selectedEndDate) {
+          const fOutages = d.properties.outage_data.filter(o => {
+            return o.date >= vis.selectedStartDate && o.date <= vis.selectedEndDate;
+          });
+          const [ startYear, endYear ] = [ vis.selectedStartDate, vis.selectedEndDate ].map(y => y.getFullYear());
+          const fPops = d.properties.populations.filter(p => {
+            return p.year >= startYear && p.year <= endYear;
+          });
+
+          outages = d3.sum(fOutages, o => o.outage_count);
+          pop = d3.mean(fPops, p => p.population);
+        } else {
+          outages = d.properties.sum_outage_count;
+          pop = d.properties.populations.find(p => p.year === 2023).population;
+        }
+
         const format = d3.format(",");
-        const outages = `<strong>${format(
-          d.properties.sum_outage_count
-        )}</strong> outages`;
-        const population = `<strong>${format(
-          d.properties.pop_2023
-        )}</strong> people`;
+        const outageText = `<strong>${format(outages)}</strong> outages`;
+        const popText = `<strong>${format(pop)}</strong> people`;
 
         d3
           .select("#tooltip")
@@ -379,8 +405,8 @@ class ChoroplethMap {
           .style("left", `${event.pageX + vis.config.tooltipPadding}px`)
           .style("top", `${event.pageY + vis.config.tooltipPadding}px`).html(`
             <div class="tooltip-title"><strong>${d.properties.county} County</strong>, ${d.properties.state_abbr}</div>
-            <div>${outages}</div>
-            <div>${population}</div>`);
+            <div>${outageText}</div>
+            <div>${popText}</div>`);
       })
       .on("mouseleave", function (event, d) {
         d3.select(this).classed("county-hover", false);
