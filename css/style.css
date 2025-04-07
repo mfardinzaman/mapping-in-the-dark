@@ -255,3 +255,8 @@ h2 {
   font-style: italic;
   text-anchor: middle;
 }
+
+.disabled-overlay {
+  fill: rgba(150, 150, 150, 0.5);
+  pointer-events: all;
+  cursor: not-allowed;}

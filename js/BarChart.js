@@ -47,8 +47,7 @@ class TimeLine {
       .append("g")
       .attr(
         "transform",
-        `translate(${vis.config.margin.left}, ${
-          vis.config.margin.top + vis.config.titlePadding
+        `translate(${vis.config.margin.left}, ${vis.config.margin.top + vis.config.titlePadding
         })`
       );
 
@@ -282,8 +281,7 @@ class TimeLine {
           .style("left", `${vis.xScale(vis.xVal(d)) + leftOffset}px`)
           .style("top", `${event.pageY - vis.config.tooltipPadding}px`)
           .html(
-            `<div class="tooltip-title"><strong>${d.monthName} ${
-              d.year
+            `<div class="tooltip-title"><strong>${d.monthName} ${d.year
             }</strong>: ${vis.format(d.total)} outages</div>`
           );
 
@@ -320,10 +318,66 @@ class TimeLine {
       .attr("y", 35)
       .attr("text-anchor", "middle")
       .text((d) => d.year)
-      .attr("fill", "black")
-      .attr("font-size", "16px");
+      .attr("font-size", "16px")
+      .transition()
+      .duration(300)
+      .attr("fill", (d) => (!isMapView && d.year !== 2020 ? "#777" : "black"))
+      .style("opacity", (d) => (!isMapView && d.year !== 2020 ? 0.4 : 1));
 
-    vis.xAxisGroup.call(vis.xAxis).call((g) => g.select(".domain").remove());
+
+    vis.xAxisGroup.call(vis.xAxis).call((g) => {
+      g.select(".domain").remove();
+
+      g.selectAll(".tick text")
+        .transition()
+        .duration(300)
+        .style("fill", (d) => (!isMapView && d.getFullYear() !== 2020 ? "#777" : "black"))
+        .style("opacity", (d) => (!isMapView && d.getFullYear() !== 2020 ? 0.4 : 1));
+    });
+
+
     vis.yAxisGroup.call(vis.yAxis).call((g) => g.select(".domain").remove());
+
+    // Overlay for disabled months
+    vis.chart.selectAll('.disabled-overlay').remove();
+
+    if (isMapView) {
+      return;
+    }
+
+    if (!isMapView) {
+      const jan2020 = new Date(2020, 0);
+      const dec2020 = new Date(2020, 11, 31);
+
+      const xJan = vis.xScale(jan2020);
+      const xDec = vis.xScale(dec2020);
+
+      vis.chart.append('rect')
+        .attr('class', 'disabled-overlay')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', xJan)
+        .attr('height', vis.height)
+        .style('fill', 'rgba(150, 150, 150, 0.5)')
+        .style('opacity', 0)
+        .style('cursor', 'not-allowed')
+        .transition()
+        .duration(400)
+        .style('opacity', 0.5);
+
+      vis.chart.append('rect')
+        .attr('class', 'disabled-overlay')
+        .attr('x', xDec)
+        .attr('y', 0)
+        .attr('width', vis.width - xDec)
+        .attr('height', vis.height)
+        .style('fill', 'rgba(150, 150, 150, 0.5)')
+        .style('opacity', 0)
+        .style('cursor', 'not-allowed')
+        .transition()
+        .duration(400)
+        .style('opacity', 1);
+    }
+
   }
 }
