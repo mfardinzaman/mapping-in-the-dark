@@ -7,6 +7,7 @@ let geoData,
 
 let isMapView = true;
 const dispatcher = d3.dispatch(
+  "viewChanged",
   "selectCounty",
   "resetCounty",
   "regionChanged",
@@ -174,20 +175,26 @@ Promise.all([
     );
 
     // create listener for view selector
-    d3.selectAll("#map-view-selector input").on("change", function (event) {
+    d3.selectAll("#map-view-selector input").on("change", function(event) {
       const selected = d3.select(this).attr("id");
-      isMapView = selected == "select-choropleth";
-
-      d3.select("#map").classed("hidden", !isMapView);
-      d3.select("#cartogram").classed("hidden", isMapView);
-
-      timeline.brush.move(timeline.brushGroup, null);
-
-      if (!isMapView) d3.select("#reset-button").node().click();
-      timeline.updateVis();
+      dispatcher.call("viewChanged", event, selected);
     });
   })
   .catch((e) => console.error(e));
+
+dispatcher.on("viewChanged", (selected) => {
+  isMapView = selected == "select-choropleth";
+
+  d3.select("#map").classed("hidden", !isMapView);
+  d3.select("#cartogram").classed("hidden", isMapView);
+
+  timeline.brush.move(timeline.brushGroup, null);
+
+  if (!isMapView) d3.select("#reset-button").node().click();
+  timeline.updateVis();
+
+  updateTitle();
+})
 
 dispatcher.on("selectCounty", (selectedFips) => {
   choroplethMap.updateVis();

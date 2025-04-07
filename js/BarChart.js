@@ -322,6 +322,8 @@ class TimeLine {
           startDate: null,
           endDate: null,
         });
+
+        return;
       }
 
       const [x0, x1] = selection,
