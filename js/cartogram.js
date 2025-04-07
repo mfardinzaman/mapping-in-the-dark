@@ -8,9 +8,9 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1350,
+      containerWidth: 1500,
       containerHeight: 1000,
-      margin: { top: 120, right: 20, bottom: 20, left: 20 },
+      margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
       maxSquareSize: 200,
       squareSpacing: 80,
@@ -60,8 +60,6 @@ class Cartogram {
       maxSquareSize,
     } = vis.config;
 
-    vis.config.titlePadding = 30;
-
     // Set up the SVG container
     vis.svg = d3
       .select(vis.config.parentElement)
@@ -69,33 +67,32 @@ class Cartogram {
       .attr("width", containerWidth)
       .attr("height", containerHeight);
 
+    vis.mainGroup = vis.svg
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
     // Add background rect
-    vis.svg
+    vis.mainGroup
       .append("rect")
       .attr("class", "background-rect")
+      .attr("x", -vis.config.margin.left)
+      .attr("y", -vis.config.margin.top)
       .attr("width", vis.config.containerWidth)
       .attr("height", vis.config.containerHeight)
       .attr("rx", 15)
       .attr("fill", "rgb(152, 173, 194)");
 
-    vis.svg = vis.svg
-      .append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
     // Adds tile size scaling based on population density
-    // M4 TODO: change scaling depending on data? May want to use a scale other than square root
-    // manualy scale
-    // TODO: Consider whether to dynamically or manually scale
     vis.tileSizeScale = d3
       .scaleLinear()
       .domain([0, 100])
       .range([minSquareSize, maxSquareSize]);
 
     // Create a group for the tile grid
-    vis.tileGrid = vis.svg.append("g").attr("class", "tile-grid");
+    vis.tileGrid = vis.mainGroup.append("g").attr("class", "tile-grid");
 
     // Empty group for the tile colour legend
-    vis.tileColourLegend = vis.svg
+    vis.tileColourLegend = vis.mainGroup
       .append("g")
       .attr("class", "legend")
       .attr(
@@ -104,7 +101,7 @@ class Cartogram {
       );
 
     // Empty group for the tile size legend
-    vis.tileSizeLegend = vis.svg
+    vis.tileSizeLegend = vis.mainGroup
       .append("g")
       .attr("class", "legend")
       .attr(
@@ -113,7 +110,7 @@ class Cartogram {
       );
 
     // Empty group for pie chart legend
-    vis.pieLegend = vis.svg
+    vis.pieLegend = vis.mainGroup
       .append("g")
       .attr("class", "legend")
       .attr(
@@ -144,10 +141,7 @@ class Cartogram {
     vis.arcGenerator = d3
       .arc()
       .innerRadius(0)
-      // M4? or M3 TODO: Change sizes of pie charts
       .outerRadius(minSquareSize * 0.3);
-
-    // M4 TODO: Add disclaimer for racial data
 
     vis.updateVis();
     vis.renderTileColorLegend();
@@ -215,7 +209,7 @@ class Cartogram {
     let currentY = -1;
     let currentYCoord = -1;
     let nextYCoord = -1;
-    // TODO (optional): refactor this to calculate both x-coordinate and y-coordinate in 1 loop instead of 2
+
     vis.cartogramData.forEach((d) => {
       // check if tile is in the same column
       // if tiles aren't adjacent to eachother, place new tile based on y value and spacing
@@ -456,7 +450,7 @@ class Cartogram {
       .attr("y", vis.config.tileColourLegendRectHeight + 25)
       .attr("x", vis.config.tileColourLegendRectWidth / 2)
       .text(
-        "Racial data reflects state-wide distribution, not only individuals directly affected by outages"
+        "Racial data reflects state-wide distribution in 2020, not only individuals directly affected by outages"
       );
   }
 

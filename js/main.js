@@ -234,7 +234,7 @@ function updateTitle(startDate, endDate) {
     } else {
       const startYear = startDate.getFullYear();
       const endYear = endDate.getFullYear();
-      console.log(startDate);
+
       if (startYear === 2020 && endYear === 2020) {
         dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
       } else if (startYear === 2020) {
