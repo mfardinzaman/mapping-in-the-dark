@@ -139,25 +139,27 @@ Promise.all([
 
       // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
       d.pieData = [
-        { value: d.other, race: "other" },
-        { value: d.indian, race: "indian" },
-        { value: d.hawaiin, race: "hawaiin" },
-        { value: d.asian, race: "asian" },
-        { value: d.mixed, race: "mixed" },
-        { value: d.black, race: "black" },
+        { value: d.other, race: "Other" },
+        { value: d.indian, race: "American Indian/Alaska Native" },
+        { value: d.hawaiin, race: "Native Hawaiin/Other Pacific Islander" },
+        { value: d.asian, race: "Asian" },
+        { value: d.mixed, race: "Mixed Race" },
+        { value: d.black, race: "Black/African American" },
       ];
-    })
+    });
 
     // needed values: proportionAffected
     cartogramData.forEach((d) => {
       d.total = +d.total;
       d.affected = +d["avg_customers_out"];
       d.proportionAffected = (d.affected / d.total) * 100;
-      d.date = new Date(`2020-${String(+d["month"]).padStart(2, "0")}`)
+      d.date = new Date(`2020-${String(+d["month"]).padStart(2, "0")}`);
     });
 
     const raceCategories = Array.from(
-      new Set(cartogramDemographicData.flatMap((d) => d.pieData.map((p) => p.race)))
+      new Set(
+        cartogramDemographicData.flatMap((d) => d.pieData.map((p) => p.race))
+      )
     );
 
     // Initialize the cartogram
@@ -231,13 +233,13 @@ function updateTitle(startDate, endDate) {
     } else {
       const startYear = startDate.getFullYear();
       const endYear = endDate.getFullYear();
-      console.log(startDate)
+      console.log(startDate);
       if (startYear === 2020 && endYear === 2020) {
         dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
       } else if (startYear === 2020) {
-        dateText = `${formatter(startDate)} - Dec 2020`
+        dateText = `${formatter(startDate)} - Dec 2020`;
       } else if (endYear === 2020) {
-        dateText = `Jan 2020 - ${formatter(endDate)}`
+        dateText = `Jan 2020 - ${formatter(endDate)}`;
       } else {
         // If both of the dates are outside of 2020, display "2020"
         dateText = "(2020)";

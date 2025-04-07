@@ -210,7 +210,12 @@ h2 {
 
 .tooltip-title {
   color: #000;
-  font-size: 12px;
+  font-size: 13px;
+}
+
+#tooltip ul {
+  margin: 5px 0 0 0;
+  padding-left: 20px;
 }
 
 .legend-title {
@@ -235,6 +240,14 @@ h2 {
 
 .county-hover {
   stroke: #909090;
+}
+
+.piechart-hover {
+  stroke: black !important;
+}
+
+.tile-hover {
+  stroke: black;
 }
 
 .legend-disclaimer {
