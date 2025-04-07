@@ -334,6 +334,10 @@ class TimeLine {
         .style("fill", (d) => (!isMapView && d.getFullYear() !== 2020 ? "#777" : "black"))
         .style("opacity", (d) => (!isMapView && d.getFullYear() !== 2020 ? 0.4 : 1));
     });
+
+
+    vis.yAxisGroup.call(vis.yAxis).call((g) => g.select(".domain").remove());
+
     // Overlay for disabled months
     vis.chart.selectAll('.disabled-overlay').remove();
 
@@ -362,7 +366,7 @@ class TimeLine {
         .style('opacity', 0.5);
 
       vis.chart.append('rect')
-        .attr('class', 'disabled-overlay')   
+        .attr('class', 'disabled-overlay')
         .attr('x', xDec)
         .attr('y', 0)
         .attr('width', vis.width - xDec)
