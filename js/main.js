@@ -218,8 +218,6 @@ function updateTitle(startDate, endDate) {
       ? "(2019 – 2023)"
       : `(${formatter(startDate)} – ${formatter(endDate)})`;
 
-  console.log(dateText);
-  console.log(isMapView);
   const titleText = isMapView
     ? `Map of Power Outages per Person ${dateText}`
     : `Proportion of People Affected by Outages ${dateText}`;

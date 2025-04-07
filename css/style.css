@@ -236,3 +236,9 @@ h2 {
 .county-hover {
   stroke: #909090;
 }
+
+.legend-disclaimer {
+  font-size: 9.5px;
+  font-style: italic;
+  text-anchor: middle;
+}

@@ -23,9 +23,9 @@ class Cartogram {
       tileSizeLegendLeft: 60,
       tileSizeLegendHeight: 320,
       tileSizeLegendWidth: 330,
-      pieLegendBottom: 650,
+      pieLegendBottom: 660,
       pieLegendLeft: 470,
-      pieLegendHeight: 230, // TODO: adjust pieLegendHeight
+      pieLegendHeight: 220,
       pieLegendWidth: 350,
     };
     this.data = _data;
@@ -350,6 +350,15 @@ class Cartogram {
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text("State Color Legend: Proportion of White vs Non-White Population");
+
+    vis.tileColourLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
+      .attr("y", vis.config.tileColourLegendRectHeight + 25)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2)
+      .text(
+        "Racial data reflects state-wide distribution, not only individuals directly affected by outages"
+      );
   }
 
   renderTileSizeLegend() {
@@ -543,13 +552,19 @@ class Cartogram {
     vis.pieLegend
       .append("text")
       .attr("class", "legend-disclaimer")
-      .attr("font-size", "9.5px")
-      .attr("font-style", "italic")
-      .attr("text-anchor", "middle")
+      .attr("y", vis.config.pieLegendHeight - legendPadding * 5)
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .text(
+        "Racial categories and data are based on the 2020 US Decennial Census;"
+      );
+
+    vis.pieLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
       .attr("y", vis.config.pieLegendHeight - legendPadding * 3.5)
       .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
       .text(
-        "Racial categories and data are based on the 2020 US Decennial Census"
+        "Racial data reflects state-wide distribution, not only individuals directly affected."
       );
   }
 }

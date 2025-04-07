@@ -32,8 +32,6 @@ class ChoroplethMap {
 
   initVis() {
     const vis = this;
-    // vis.config.titlePadding = 30;
-
     // Calculate inner chart size
     vis.config.width =
       vis.config.containerWidth -
@@ -114,16 +112,6 @@ class ChoroplethMap {
         t.append("tspan").attr("dx", 4).text("- Outages per person");
       });
 
-    // Append chart title
-    // vis.svg
-    //   .append("text")
-    //   .attr("class", "chart-title")
-    //   .attr("y", 23)
-    //   .attr("x", 20)
-    //   .attr("font-size", "18px")
-    //   .attr("font-weight", "bold")
-    //   .text("Map of Power Outages Across US Counties (in selected time range)");
-
     // Create group for instructions box
     vis.instructionsGroup = vis.svg
       .append("g")
@@ -167,6 +155,10 @@ class ChoroplethMap {
       },
       {
         text: "Highlight a time range in the timeline to filter map data",
+        type: "main",
+      },
+      {
+        text: "Click timeline background to clear date selection",
         type: "main",
       },
       { text: "Map View Only:", type: "heading" },
