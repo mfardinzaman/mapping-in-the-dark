@@ -19,6 +19,7 @@ class Cartogram {
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
       numBins: 11,
+      tooltipPadding: 10,
       tileSizeLegendBottom: 270,
       tileSizeLegendLeft: 60,
       tileSizeLegendHeight: 320,
@@ -33,12 +34,15 @@ class Cartogram {
     this.raceCategories = _raceCategories;
     this.dispatcher = _dispatcher;
 
-    this.dispatcher.on('timeRangeChanged.cartogram', ({ startDate, endDate }) => {
-      if (isMapView) return;
-      this.selectedStartDate = startDate;
-      this.selectedEndDate = endDate;
-      this.updateVis();
-    });
+    this.dispatcher.on(
+      "timeRangeChanged.cartogram",
+      ({ startDate, endDate }) => {
+        if (isMapView) return;
+        this.selectedStartDate = startDate;
+        this.selectedEndDate = endDate;
+        this.updateVis();
+      }
+    );
 
     this.initVis();
   }
@@ -163,31 +167,29 @@ class Cartogram {
       const start = vis.selectedStartDate;
       const end = vis.selectedEndDate;
 
-
-      filteredData = vis.data.filter(item => {
+      filteredData = vis.data.filter((item) => {
         return start <= item.date && item.date <= end;
       });
       if (filteredData.length === 0) filteredData = vis.data;
     } else {
-      filteredData = vis.data
+      filteredData = vis.data;
     }
 
     const { squareSpacing } = vis.config;
-    const groupedData = d3.groups(filteredData, d => d.State);
+    const groupedData = d3.groups(filteredData, (d) => d.State);
 
     // TODO: filter months based on slider from bar chart
     // Calculate the average value for each state
     const averagedData = Array.from(groupedData, ([State, values]) => {
-      const proportionAffected = d3.mean(values, d => d.proportionAffected);
+      const proportionAffected = d3.mean(values, (d) => d.proportionAffected);
       return { State, proportionAffected };
     });
 
     // combine datasets to get the cartogram data
     vis.cartogramData = averagedData.map((d1, index) => ({
       ...d1,
-      ...vis.demographicData[index]
+      ...vis.demographicData[index],
     }));
-
 
     // Calculate x-coordinate for each State
     let currentX = -1;
@@ -234,18 +236,18 @@ class Cartogram {
 
     // Center align x-coordinates
     vis.cartogramData.forEach((d) => {
-      let currentData = vis.cartogramData.filter((filtered) => filtered.x == d.x);
+      let currentData = vis.cartogramData.filter(
+        (filtered) => filtered.x == d.x
+      );
       let currentMax = d3.max(currentData, (f) => f.proportionAffected);
       if (currentMax != d.proportionAffected) {
         d.xCoord =
           d.xCoord +
           (vis.tileSizeScale(currentMax) -
             vis.tileSizeScale(d.proportionAffected)) /
-          2;
+            2;
       }
     });
-
-    // M4 TODO: Add tooltips for pie charts/tilegrid
 
     vis.renderVis();
   }
@@ -269,18 +271,64 @@ class Cartogram {
         return vis.gridColourScale(d.proportionNonWhite);
       })
       .attr("stroke", "slate-grey")
-      .attr("stroke-width", 1);
+      .attr("stroke-width", 1)
+      .on("mousemove", function (event, d) {
+        d3.select(this).classed("tile-hover", true);
+        d3
+          .select("#tooltip")
+          .style("display", "block")
+          .style("left", `${event.pageX + vis.config.tooltipPadding}px`)
+          .style("top", event.pageY + vis.config.tooltipPadding + "px").html(`
+            <div class="tooltip-title"><strong>${d.State}</strong></div>
+            <div><i>Population affected by outages: ${Math.round(
+              d.proportionAffected
+            )}%</i></div>
+            <br/>
+            <div><strong>State-Wide Racial Distribution:</strong></div>
+            <ul>
+              <li>White: ${Math.round((1 - d.proportionNonWhite) * 100)}%</li>
+              <li>Non-White: ${Math.round(d.proportionNonWhite * 100)}%</li>
+            </ul>
+            <br/>
+            <div><strong>Racial Distribution of Non-White Population:</strong></div>
+            <ul>
+              <li>Black/African American:<strong>${Math.round(
+                (d.black / d.totalNonWhite) * 100
+              )}%</strong></li>
+              <li>Mixed Race:<strong> ${Math.round(
+                (d.mixed / d.totalNonWhite) * 100
+              )}%</strong></li>
+              <li>Asian:<strong>${Math.round(
+                (d.asian / d.totalNonWhite) * 100
+              )}%</strong></li>
+              <li>Native Hawaiian/Other Pacific Islander: <strong>${Math.round(
+                (d.hawaiin / d.totalNonWhite) * 100
+              )}%</strong></li>
+              <li>American Indian/Alaska Native: <strong>${Math.round(
+                (d.indian / d.totalNonWhite) * 100
+              )}%</strong></li>
+              <li>Other: <strong>${Math.round(
+                (d.other / d.totalNonWhite) * 100
+              )}%</strong></li>
+            </ul>
+          `);
+      })
+      .on("mouseleave", function (event, d) {
+        d3.select(this).classed("tile-hover", false);
+        d3.select("#tooltip").style("display", "none");
+      });
 
     // Create pie charts
-    vis.tileGrid
+    const pieCharts = vis.tileGrid
       .selectAll(".pie-chart")
       .data(vis.cartogramData)
       .join("g")
-      .attr('class', 'pie-chart')
+      .attr("class", "pie-chart")
       .attr(
         "transform",
         (d) =>
-          `translate(${d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2
+          `translate(${
+            d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2
           },${d.yCoord + vis.tileSizeScale(d.proportionAffected) / 2})`
       )
       .selectAll("path")
@@ -289,9 +337,22 @@ class Cartogram {
       .attr("d", vis.arcGenerator)
       .attr("fill", (d) => vis.pieColourScale(d.data.race))
       .style("stroke", "white")
-      .style("stroke-width", "0.75px");
+      .style("stroke-width", "0.75px")
+      .on("mousemove", function (event, d) {
+        d3.select(this).classed("piechart-hover", true);
+        d3
+          .select("#tooltip")
+          .style("display", "block")
+          .style("left", `${event.pageX + vis.config.tooltipPadding}px`)
+          .style("top", event.pageY + vis.config.tooltipPadding + "px").html(`
+            <div class="tooltip-title"><strong>${d.data.race}</strong>: ${d.value} people</div>
+          `);
+      })
+      .on("mouseleave", function (event, d) {
+        d3.select(this).classed("piechart-hover", false);
+        d3.select("#tooltip").style("display", "none");
+      });
 
-    // Add text for each State
     vis.tileGrid
       .selectAll("text")
       .data(vis.cartogramData)
@@ -509,8 +570,9 @@ class Cartogram {
             const endY = labelY;
 
             // Horizontal line to square
-            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${labelX + 10
-              },${endY}`;
+            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${
+              labelX + 10
+            },${endY}`;
           })
           .attr("fill", "none")
           .attr("stroke", "black")
