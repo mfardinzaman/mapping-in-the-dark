@@ -180,7 +180,7 @@ class ChoroplethMap {
     let yOffset = 50;
     const maxLineWidth = 255;
 
-    // TODO - credit chatGPT with how to wrap text
+    // Wrap text - adapted from chatGPT
     const wrapText = (
       text,
       x,

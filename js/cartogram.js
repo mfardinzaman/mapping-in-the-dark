@@ -92,6 +92,12 @@ class Cartogram {
     // Create a group for the tile grid
     vis.tileGrid = vis.mainGroup.append("g").attr("class", "tile-grid");
 
+    // empty group for disclaimers
+    vis.cartogramDisclaimer = vis.mainGroup
+      .append("g")
+      .attr("class", "cartogram-disclaimer")
+      .attr("transform", `translate(${20}, ${0})`);
+
     // Empty group for the tile colour legend
     vis.tileColourLegend = vis.mainGroup
       .append("g")
@@ -144,17 +150,8 @@ class Cartogram {
       .innerRadius(0)
       .outerRadius(minSquareSize * 0.3);
 
-    // MUNA TODO Append Disclaimers
-    vis.svg
-      .append("text")
-      .attr("class", "data-disclaimer")
-      .attr("x", "500px")
-      .attr("y", "30px")
-      .text("Disclaimer: Data outside 2020 unavailable");
-    // Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages"
-    //"Racial categories and data are based on the 2020 US Decennial Census"
-
     vis.updateVis();
+    vis.renderCartogramDisclaimer();
     vis.renderTileColorLegend();
     vis.renderTileSizeLegend();
     vis.renderPieLegend();
@@ -653,5 +650,102 @@ class Cartogram {
       .attr("y", legendPadding + swatchSize / 2 + 4)
       .attr("font-size", "11px")
       .text((d) => d);
+  }
+
+  renderCartogramDisclaimer() {
+    let vis = this;
+    const disclaimerHeight = 190;
+    const disclaimerWidth = vis.config.tileSizeLegendWidth;
+    const xOffset = 15;
+    let yOffset = -70;
+
+    const lineHeight = 18;
+    const maxLineWidth = disclaimerWidth - 30;
+
+    vis.cartogramDisclaimer
+      .append("rect")
+      .attr("class", "cartogram-disclaimer-background")
+      .attr("y", -90)
+      .attr("width", disclaimerWidth)
+      .attr("height", disclaimerHeight)
+      .attr("fill", "rgb(201, 211, 221)")
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1)
+      .attr("rx", 10)
+      .attr("ry", 10);
+
+    // Add title
+    vis.cartogramDisclaimer
+      .append("text")
+      .attr("x", xOffset)
+      .attr("y", yOffset)
+      .attr("font-size", "15px")
+      .attr("font-weight", "bold")
+      .attr("fill", "purple")
+      .text("Disclaimers:");
+
+    yOffset += 20; // add space between title and points
+
+    // Add disclaimer items
+    const disclaimers = [
+      "Cartogram depicts 2020 data only",
+      "In timeline, date ranges outside of 2020 cannot be selected",
+      "Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages",
+      "Racial categories and data are derived from the 2020 US Decennial Census",
+    ];
+
+    // Wrap text (adapted from chatGPT)
+    const wrapText = (text, x, y, prefix = "") => {
+      const words = text.split(/\s+/);
+      let line = [];
+      let tspanCount = 0;
+
+      const textEl = vis.cartogramDisclaimer
+        .append("text")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("font-size", "13px")
+        .attr("fill", "black");
+
+      let tspan = textEl
+        .append("tspan")
+        .attr("x", x)
+        .attr("dy", 0)
+        .text(prefix);
+
+      words.forEach((word) => {
+        line.push(word);
+        tspan.text(prefix + line.join(" "));
+        if (tspan.node().getComputedTextLength() > maxLineWidth) {
+          line.pop();
+          tspan.text(prefix + line.join(" "));
+          line = [word];
+          prefix = ""; // no bullet on wrapped lines
+          tspan = textEl
+            .append("tspan")
+            .attr("x", x)
+            .attr("dy", lineHeight)
+            .text(word);
+          tspanCount++;
+        }
+      });
+
+      if (line.length && tspan.text() !== prefix + line.join(" ")) {
+        tspan = textEl
+          .append("tspan")
+          .attr("x", x)
+          .attr("dy", lineHeight)
+          .text(prefix + line.join(" "));
+        tspanCount++;
+      }
+
+      return (tspanCount + 1) * lineHeight;
+    };
+
+    // Render each disclaimer item
+    disclaimers.forEach((text) => {
+      const heightAdded = wrapText(text, xOffset, yOffset, "• ");
+      yOffset += heightAdded + 4;
+    });
   }
 }
