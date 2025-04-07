@@ -8,10 +8,9 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 2000,
+      containerWidth: 1350,
       containerHeight: 1000,
       margin: { top: 120, right: 20, bottom: 20, left: 20 },
-      // M4 TODO: change square sizes and square spacing depending on size of the visualization
       minSquareSize: 70,
       maxSquareSize: 200,
       squareSpacing: 80,
@@ -20,13 +19,13 @@ class Cartogram {
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
       numBins: 11,
-      tileSizeLegendBottom: 260, // TODO - adjust tile size legend location
-      tileSizeLegendLeft: 450,
-      tileSizeLegendHeight: 330,
+      tileSizeLegendBottom: 270,
+      tileSizeLegendLeft: 60,
+      tileSizeLegendHeight: 320,
       tileSizeLegendWidth: 330,
-      pieLegendBottom: 550,
-      pieLegendLeft: 500, // TODO - adjust pie chart legend location
-      pieLegendHeight: 200,
+      pieLegendBottom: 660,
+      pieLegendLeft: 470,
+      pieLegendHeight: 220,
       pieLegendWidth: 350,
     };
     this.data = _data;
@@ -56,12 +55,25 @@ class Cartogram {
       maxSquareSize,
     } = vis.config;
 
+    vis.config.titlePadding = 30;
+
     // Set up the SVG container
     vis.svg = d3
       .select(vis.config.parentElement)
       .append("svg")
       .attr("width", containerWidth)
-      .attr("height", containerHeight)
+      .attr("height", containerHeight);
+
+    // Add background rect
+    vis.svg
+      .append("rect")
+      .attr("class", "background-rect")
+      .attr("width", vis.config.containerWidth)
+      .attr("height", vis.config.containerHeight)
+      .attr("rx", 15)
+      .attr("fill", "rgb(152, 173, 194)");
+
+    vis.svg = vis.svg
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -255,7 +267,7 @@ class Cartogram {
       .attr("fill", (d) => {
         return vis.gridColourScale(d.proportionNonWhite);
       })
-      .attr("stroke", "white")
+      .attr("stroke", "slate-grey")
       .attr("stroke-width", 1);
 
     // Create pie charts
@@ -375,18 +387,26 @@ class Cartogram {
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text("State Color Legend: Proportion of White vs Non-White Population");
+
+    vis.tileColourLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
+      .attr("y", vis.config.tileColourLegendRectHeight + 25)
+      .attr("x", vis.config.tileColourLegendRectWidth / 2)
+      .text(
+        "Racial data reflects state-wide distribution, not only individuals directly affected by outages"
+      );
   }
 
   renderTileSizeLegend() {
     let vis = this;
-    // TODO Remove this? this is here mainly to visualize what I'm doing
     vis.tileSizeLegend
       .append("rect")
       .attr("x", vis.config.tileSizeLegendLeft)
       .attr("y", vis.config.tileSizeLegendBottom)
       .attr("width", vis.config.tileSizeLegendWidth)
       .attr("height", vis.config.tileSizeLegendHeight)
-      .attr("fill", "white")
+      .attr("fill", "rgb(201, 211, 221)")
       .attr("stroke", "grey")
       .attr("stroke-width", 1)
       .attr("rx", 10)
@@ -433,8 +453,8 @@ class Cartogram {
         .attr("y", startY)
         .attr("width", size)
         .attr("height", size)
-        .attr("fill", "grey")
-        .attr("opacity", 0.2)
+        .attr("fill", "white")
+        .attr("opacity", 0.6)
         .attr("stroke", "black")
         .attr("stroke-width", 1);
     });
@@ -522,7 +542,7 @@ class Cartogram {
       .attr("y", -legendPadding - 15)
       .attr("width", vis.config.pieLegendWidth)
       .attr("height", vis.config.pieLegendHeight)
-      .attr("fill", "white")
+      .attr("fill", "rgb(201, 211, 221)") // TODO - or white
       .attr("stroke", "grey")
       .attr("stroke-width", 1)
       .attr("rx", 10)
@@ -568,13 +588,19 @@ class Cartogram {
     vis.pieLegend
       .append("text")
       .attr("class", "legend-disclaimer")
-      .attr("font-size", "9.5px")
-      .attr("font-style", "italic")
-      .attr("text-anchor", "middle")
+      .attr("y", vis.config.pieLegendHeight - legendPadding * 5)
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .text(
+        "Racial categories and data are based on the 2020 US Decennial Census;"
+      );
+
+    vis.pieLegend
+      .append("text")
+      .attr("class", "legend-disclaimer")
       .attr("y", vis.config.pieLegendHeight - legendPadding * 3.5)
       .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
       .text(
-        "Racial categories and data are based on the 2020 US Decennial Census"
+        "Racial data reflects state-wide distribution, not only individuals directly affected."
       );
   }
 }

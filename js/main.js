@@ -1,5 +1,17 @@
-let geoData, outageData, timeline, choroplethMap, selectedStartDate, selectedEndDate;
-const dispatcher = d3.dispatch('selectCounty', 'resetCounty', 'regionChanged', 'timeRangeChanged');
+let geoData,
+  outageData,
+  timeline,
+  choroplethMap,
+  selectedStartDate,
+  selectedEndDate;
+
+let isMapView = true;
+const dispatcher = d3.dispatch(
+  "selectCounty",
+  "resetCounty",
+  "regionChanged",
+  "timeRangeChanged"
+);
 
 Promise.all([
   d3.json("../data/geometry_data.geojson"),
@@ -39,22 +51,31 @@ Promise.all([
       });
     });
 
-    timeline = new TimeLine({ parentElement: "#chart" }, outageData, dispatcher);
+    timeline = new TimeLine(
+      { parentElement: "#chart" },
+      outageData,
+      dispatcher
+    );
     timeline.updateVis();
 
     // ==========================================
     // Choropleth Map
     // ==========================================
-    const popLookup = new Map(popData.map(d => {
-      return [+d.fips_code, {
-        pop_2019: +d.pop_2019,
-        pop_2020: +d.pop_2020,
-        pop_2021: +d.pop_2021,
-        pop_2022: +d.pop_2022,
-        pop_2023: +d.pop_2023,
-        state_abbr: d.state_abbr
-      }]
-    }));
+    const popLookup = new Map(
+      popData.map((d) => {
+        return [
+          +d.fips_code,
+          {
+            pop_2019: +d.pop_2019,
+            pop_2020: +d.pop_2020,
+            pop_2021: +d.pop_2021,
+            pop_2022: +d.pop_2022,
+            pop_2023: +d.pop_2023,
+            state_abbr: d.state_abbr,
+          },
+        ];
+      })
+    );
 
     // Filter Puerto Rico
     const features = geoData.features.filter(
@@ -81,27 +102,26 @@ Promise.all([
 
     geoData.features = features;
 
-    choroplethMap = new ChoroplethMap({ parentElement: "#map" }, geoData, dispatcher);
+    choroplethMap = new ChoroplethMap(
+      { parentElement: "#map" },
+      geoData,
+      dispatcher
+    );
 
     // Listen for region selector event
-    d3.selectAll('#region-selector input')
-      .on('change', function (event) {
-        const region = d3.select(this).attr('id');
-        dispatcher.call('regionChanged', event, region);
-      });
+    d3.selectAll("#region-selector input").on("change", function (event) {
+      const region = d3.select(this).attr("id");
+      dispatcher.call("regionChanged", event, region);
+    });
 
-    d3.select('#reset-button')
-      .on('click', function (event) {
-        dispatcher.call('resetCounty', event);
-      })
+    d3.select("#reset-button").on("click", function (event) {
+      dispatcher.call("resetCounty", event);
+    });
 
     // ==========================================
     // Cartogram
     // ==========================================
     // prepare cartogram + piechart data:
-
-    // prepare cartogram + piechart data:
-    // needed values: d.x, d.y, d.proportionNonWhite, pieData
     cartogramDemographicData.forEach((d) => {
       d.x = +d.x;
       d.y = +d.y - 1;
@@ -152,30 +172,30 @@ Promise.all([
       dispatcher
     );
 
-    d3.selectAll('#map-view-selector input')
-      .on('change', function (event) {
-        const selected = d3.select(this).attr('id'),
-          isMapView = selected == 'select-choropleth';
+    d3.selectAll("#map-view-selector input").on("change", function (event) {
+      const selected = d3.select(this).attr("id");
+      isMapView = selected == "select-choropleth";
 
-        d3.select('#map').classed('hidden', !isMapView);
-        d3.select('#cartogram').classed('hidden', isMapView);
+      d3.select("#map").classed("hidden", !isMapView);
+      d3.select("#cartogram").classed("hidden", isMapView);
 
-        if (!isMapView) d3.select('#reset-button').node().click();
+      updateTitle(selectedStartDate, selectedEndDate);
+      timeline.brush.move(timeline.brushGroup, null);
 
-        timeline.brush.move(timeline.brushGroup, null);
-      });
+      if (!isMapView) d3.select("#reset-button").node().click();
+    });
   })
   .catch((e) => console.error(e));
 
-dispatcher.on('selectCounty', selectedFips => {
+dispatcher.on("selectCounty", (selectedFips) => {
   choroplethMap.updateVis();
 
   timeline.selectedFips = selectedFips;
   timeline.updateVis();
-})
+});
 
-dispatcher.on('resetCounty', () => {
-  choroplethMap.data.features.forEach(d => {
+dispatcher.on("resetCounty", () => {
+  choroplethMap.data.features.forEach((d) => {
     d.properties.selected = false;
   });
 
@@ -184,24 +204,47 @@ dispatcher.on('resetCounty', () => {
 
   timeline.selectedFips = new Set();
   timeline.updateVis();
-})
-
-dispatcher.on('regionChanged', region => {
-  choroplethMap.selectByCounty = region === 'county';
-})
-
-dispatcher.on('timeRangeChanged.main', ({ startDate, endDate }) => {
-  selectedStartDate = startDate;
-  selectedEndDate = endDate;
-
-  const title = d3.select("#map-title");
-
-  if (!startDate || !endDate) {
-    title.text("Outages per person (2019 – 2023)");
-  } else {
-    const formatter = d3.timeFormat("%b %Y");
-    title.text(`Outages per person (${formatter(startDate)} – ${formatter(endDate)})`);
-  }
 });
 
+dispatcher.on("regionChanged", (region) => {
+  choroplethMap.selectByCounty = region === "county";
+});
 
+dispatcher.on("timeRangeChanged.main", ({ startDate, endDate }) => {
+  selectedStartDate = startDate;
+  selectedEndDate = endDate;
+  updateTitle(startDate, endDate);
+});
+
+function updateTitle(startDate, endDate) {
+  const title = d3.select("#map-title");
+  const formatter = d3.timeFormat("%b %Y");
+
+  let dateText;
+  if (isMapView) {
+    dateText =
+      !startDate || !endDate
+        ? "(2019 – 2023)"
+        : `(${formatter(startDate)} – ${formatter(endDate)})`;
+  } else {
+    if (!startDate || !endDate) {
+      dateText = "(2020)";
+    } else {
+      const startYear = startDate.getFullYear();
+      const endYear = endDate.getFullYear();
+
+      if (startYear === 2020 && endYear === 2020) {
+        dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
+      } else {
+        // If either of the dates is outside of 2020, display "2020"
+        dateText = "(2020)";
+      }
+    }
+  }
+
+  const titleText = isMapView
+    ? `Map of Power Outages per Person ${dateText}`
+    : `Proportion of People Affected by Outages ${dateText}`;
+
+  title.text(titleText);
+}
