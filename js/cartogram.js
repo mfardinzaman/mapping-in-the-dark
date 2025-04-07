@@ -12,7 +12,7 @@ class Cartogram {
       containerHeight: 785,
       margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
-      maxSquareSize: 200,
+      maxSquareSize: 150,
       squareSpacing: 80,
       tileColourLegendBottom: 10,
       tileColourLegendLeft: 430,
