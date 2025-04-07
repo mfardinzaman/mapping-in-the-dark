@@ -279,7 +279,10 @@ class Cartogram {
           .select("#tooltip")
           .style("display", "block")
           .style("left", `${event.pageX + vis.config.tooltipPadding}px`)
-          .style("top", event.pageY + vis.config.tooltipPadding + "px").html(`
+          .style(
+            "top",
+            event.pageY - vis.config.tooltipPadding - 220 + "px"
+          ).html(`
             <div class="tooltip-title"><strong>${d.State}</strong></div>
             <div><i>Population affected by outages: ${Math.round(
               d.proportionAffected
