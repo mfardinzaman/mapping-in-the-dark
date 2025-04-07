@@ -8,8 +8,8 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1500,
-      containerHeight: 1000,
+      containerWidth: 1360,
+      containerHeight: 970,
       margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
       maxSquareSize: 200,
@@ -20,12 +20,12 @@ class Cartogram {
       tileColourLegendRectWidth: 500,
       numBins: 11,
       tooltipPadding: 10,
-      tileSizeLegendBottom: 270,
-      tileSizeLegendLeft: 60,
-      tileSizeLegendHeight: 320,
-      tileSizeLegendWidth: 330,
-      pieLegendBottom: 660,
-      pieLegendLeft: 470,
+      tileSizeLegendBottom: 340,
+      tileSizeLegendLeft: 320,
+      tileSizeLegendHeight: 280,
+      tileSizeLegendWidth: 300,
+      pieLegendBottom: 640,
+      pieLegendLeft: 270,
       pieLegendHeight: 220,
       pieLegendWidth: 350,
     };
@@ -101,9 +101,9 @@ class Cartogram {
       );
 
     // Empty group for the tile size legend
-    vis.tileSizeLegend = vis.mainGroup
+    vis.tileSizeLegend = vis.svg
       .append("g")
-      .attr("class", "legend")
+      .attr("class", "tile-size-legend")
       .attr(
         "transform",
         `translate(${vis.config.tileSizeLegendLeft}, ${vis.config.tileSizeLegendBottom})`
@@ -450,7 +450,7 @@ class Cartogram {
       .attr("y", vis.config.tileColourLegendRectHeight + 25)
       .attr("x", vis.config.tileColourLegendRectWidth / 2)
       .text(
-        "Racial data reflects state-wide distribution in 2020, not only individuals directly affected by outages"
+        "Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages"
       );
   }
 
@@ -475,7 +475,7 @@ class Cartogram {
     // Legend title
     vis.tileSizeLegend
       .append("text")
-      .attr("x", vis.config.tileSizeLegendLeft + spacing * 1.5)
+      .attr("x", vis.config.tileSizeLegendLeft + spacing)
       .attr("y", vis.config.tileSizeLegendBottom + spacing)
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
@@ -488,7 +488,7 @@ class Cartogram {
       .attr("font-size", "10px")
       .attr("font-style", "italic")
       .attr("text-anchor", "middle")
-      .attr("x", vis.config.tileSizeLegendLeft + spacing * 6.5)
+      .attr("x", vis.config.tileSizeLegendLeft + spacing * 6)
       .attr("y", vis.config.tileSizeLegendBottom + spacing * 1.7)
       .text("Normalized by total state population in 2020");
 
