@@ -277,6 +277,16 @@ class TimeLine {
           d1 = flatData[i],
           d = xPos - vis.xScale(d0.date) > vis.xScale(d1.date) - xPos ? d1 : d0;
 
+        d3.select("#tooltip")
+          .style("display", "block")
+          .style("left", `${vis.xScale(vis.xVal(d)) + leftOffset}px`)
+          .style("top", `${event.pageY - vis.config.tooltipPadding}px`)
+          .html(
+            `<div class="tooltip-title"><strong>${d.monthName} ${
+              d.year
+            }</strong>: ${vis.format(d.total)} outages</div>`
+          );
+
         vis.hoverLine
           .raise()
           .style("display", "block")
