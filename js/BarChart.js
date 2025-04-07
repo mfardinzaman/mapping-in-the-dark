@@ -122,39 +122,13 @@ class TimeLine {
       .attr("stop-color", (d) => d.colour)
       .attr("stop-opacity", "80%");
 
-    // ==========================================
-    // Brush
-    // ==========================================
     // Add brush
     vis.brush = d3
       .brushX()
       .extent([
         [0, 0],
         [vis.width, vis.height],
-      ])
-      .on("end", (event) => {
-        const selection = event.selection;
-
-        if (selection) {
-          const [x0, x1] = selection;
-          const startDate = vis.xScale.invert(x0);
-          const endDate = vis.xScale.invert(x1);
-
-          if (vis.dispatcher) {
-            vis.dispatcher.call("timeRangeChanged", null, {
-              startDate,
-              endDate,
-            });
-          }
-        } else {
-          if (vis.dispatcher) {
-            vis.dispatcher.call("timeRangeChanged", null, {
-              startDate: null,
-              endDate: null,
-            });
-          }
-        }
-      });
+      ]);
 
     vis.brushGroup = vis.chart
       .append("g")
@@ -243,8 +217,6 @@ class TimeLine {
 
     vis.bisect = d3.bisector((d) => vis.xVal(d)).left;
 
-    vis.bisect = d3.bisector((d) => vis.xVal(d)).left;
-
     vis.renderVis();
   }
 
@@ -270,11 +242,9 @@ class TimeLine {
           vis.config.tooltipPadding;
 
         const xPos = d3.pointer(event, this)[0],
-          date = vis.xScale.invert(xPos),
-          i = vis.bisect(flatData, date, 1),
-          d0 = flatData[i - 1],
-          d1 = flatData[i],
-          d = xPos - vis.xScale(d0.date) > vis.xScale(d1.date) - xPos ? d1 : d0;
+              date = vis.xScale.invert(xPos);
+              
+        const d = vis.getSnappedDate(xPos, date, flatData);
 
         d3.select("#tooltip")
           .style("display", "block")
@@ -334,24 +304,66 @@ class TimeLine {
         .style("fill", (d) => (!isMapView && d.getFullYear() !== 2020 ? "#777" : "black"))
         .style("opacity", (d) => (!isMapView && d.getFullYear() !== 2020 ? 0.4 : 1));
     });
+    
+    // ==========================================
+    // Brush
+    // ==========================================
+    const jan2020 = new Date(2020, 0),
+          dec2020 = new Date(2020, 11, 31),
+          xJan = vis.xScale(jan2020),
+          xDec = vis.xScale(dec2020);
 
+    vis.brush.on("end", function(event) {
+      if (!event.sourceEvent) return;
+
+      const selection = event.selection;
+      if (!selection) {
+        vis.dispatcher.call("timeRangeChanged", null, {
+          startDate: null,
+          endDate: null,
+        });
+      }
+
+      const [x0, x1] = selection,
+            startDate = vis.xScale.invert(x0),
+            endDate = vis.xScale.invert(x1);
+
+      let snappedStart = vis.getSnappedDate(x0, startDate, flatData),
+          snappedEnd = vis.getSnappedDate(x1, endDate, flatData);
+
+      if (!isMapView) {
+        snappedStart = (snappedStart.date < jan2020) ? vis.getSnappedDate(xJan, jan2020, flatData) : snappedStart;
+        snappedEnd = (snappedEnd.date > dec2020) ? vis.getSnappedDate(xDec, dec2020, flatData) : snappedEnd;
+      }
+
+      if (snappedStart === snappedEnd) {
+        d3.select(this).call(vis.brush.move, null);
+
+        vis.dispatcher.call("timeRangeChanged", null, {
+          startDate: null,
+          endDate: null,
+        });
+
+        return;
+      }
+
+      d3.select(this).call(vis.brush.move, [
+        vis.xScale(vis.xVal(snappedStart)),
+        vis.xScale(vis.xVal(snappedEnd))
+      ]);
+
+      vis.dispatcher.call("timeRangeChanged", null, {
+        startDate: vis.xVal(snappedStart),
+        endDate: vis.xVal(snappedEnd),
+        });
+    })
 
     vis.yAxisGroup.call(vis.yAxis).call((g) => g.select(".domain").remove());
 
     // Overlay for disabled months
     vis.chart.selectAll('.disabled-overlay').remove();
 
-    if (isMapView) {
-      return;
-    }
-
     if (!isMapView) {
-      const jan2020 = new Date(2020, 0);
-      const dec2020 = new Date(2020, 11, 31);
-
-      const xJan = vis.xScale(jan2020);
-      const xDec = vis.xScale(dec2020);
-
       vis.chart.append('rect')
         .attr('class', 'disabled-overlay')
         .attr('x', 0)
@@ -379,5 +391,13 @@ class TimeLine {
         .style('opacity', 1);
     }
 
+  }
+
+  getSnappedDate(x, date, data) {
+    const i = this.bisect(data, date, 1),
+          d0 = data[i - 1],
+          d1 = data[i];
+
+    return x - this.xScale(d0.date) > this.xScale(d1.date) - x ? d1: d0;
   }
 }
