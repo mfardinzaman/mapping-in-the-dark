@@ -21,6 +21,7 @@ class ChoroplethMap {
     this.dispatcher.on(
       "timeRangeChanged.choropleth",
       ({ startDate, endDate }) => {
+        if (!isMapView) return;
         this.selectedStartDate = startDate;
         this.selectedEndDate = endDate;
         this.updateVis();

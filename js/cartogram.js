@@ -34,6 +34,7 @@ class Cartogram {
     this.dispatcher = _dispatcher;
 
     this.dispatcher.on('timeRangeChanged.cartogram', ({ startDate, endDate }) => {
+      if (isMapView) return;
       this.selectedStartDate = startDate;
       this.selectedEndDate = endDate;
       this.updateVis();

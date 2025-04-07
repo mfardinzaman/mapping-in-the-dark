@@ -179,7 +179,6 @@ Promise.all([
       d3.select("#map").classed("hidden", !isMapView);
       d3.select("#cartogram").classed("hidden", isMapView);
 
-      updateTitle(selectedStartDate, selectedEndDate);
       timeline.brush.move(timeline.brushGroup, null);
 
       if (!isMapView) d3.select("#reset-button").node().click();
@@ -232,11 +231,15 @@ function updateTitle(startDate, endDate) {
     } else {
       const startYear = startDate.getFullYear();
       const endYear = endDate.getFullYear();
-
+      console.log(startDate)
       if (startYear === 2020 && endYear === 2020) {
         dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
+      } else if (startYear === 2020) {
+        dateText = `${formatter(startDate)} - Dec 2020`
+      } else if (endYear === 2020) {
+        dateText = `Jan 2020 - ${formatter(endDate)}`
       } else {
-        // If either of the dates is outside of 2020, display "2020"
+        // If both of the dates are outside of 2020, display "2020"
         dateText = "(2020)";
       }
     }
