@@ -8,27 +8,27 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1600,
-      containerHeight: 785,
+      containerWidth: 1550,
+      containerHeight: 700,
       margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
       maxSquareSize: 150,
       squareSpacing: 80,
-      tileColourLegendBottom: 10,
-      tileColourLegendLeft: 430,
+      tileColourLegendBottom: 5,
+      tileColourLegendLeft: 450,
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
-      startingMapCoordinate: 300,
+      startingMapCoordinate: 400,
       numBins: 11,
       tooltipPadding: 10,
-      tileSizeLegendBottom: 10,
-      tileSizeLegendLeft: 0,
-      tileSizeLegendHeight: 280,
+      tileSizeLegendBottom: 120,
+      tileSizeLegendLeft: 15,
+      tileSizeLegendHeight: 230,
       tileSizeLegendWidth: 300,
-      pieLegendBottom: 280,
-      pieLegendLeft: 0,
-      pieLegendHeight: 220,
-      pieLegendWidth: 350,
+      pieLegendBottom: 390,
+      pieLegendLeft: 30,
+      pieLegendHeight: 190,
+      pieLegendWidth: 300,
     };
     this.data = _data;
     this.demographicData = _demographicData;
@@ -144,12 +144,15 @@ class Cartogram {
       .innerRadius(0)
       .outerRadius(minSquareSize * 0.3);
 
+    // MUNA TODO Append Disclaimers
     vis.svg
       .append("text")
       .attr("class", "data-disclaimer")
       .attr("x", "500px")
       .attr("y", "30px")
       .text("Disclaimer: Data outside 2020 unavailable");
+    // Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages"
+    //"Racial categories and data are based on the 2020 US Decennial Census"
 
     vis.updateVis();
     vis.renderTileColorLegend();
@@ -180,7 +183,6 @@ class Cartogram {
     const { squareSpacing } = vis.config;
     const groupedData = d3.groups(filteredData, (d) => d.State);
 
-    // TODO: filter months based on slider from bar chart
     // Calculate the average value for each state
     const averagedData = Array.from(groupedData, ([State, values]) => {
       const proportionAffected = d3.mean(values, (d) => d.proportionAffected);
@@ -451,15 +453,6 @@ class Cartogram {
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text("State Color Legend: Proportion of White vs Non-White Population");
-
-    vis.tileColourLegend
-      .append("text")
-      .attr("class", "legend-disclaimer")
-      .attr("y", vis.config.tileColourLegendRectHeight + 25)
-      .attr("x", vis.config.tileColourLegendRectWidth / 2)
-      .text(
-        "Racial data reflects state-wide distribution in 2020, not distribution of people directly affected by outages"
-      );
   }
 
   renderTileSizeLegend() {
@@ -553,6 +546,7 @@ class Cartogram {
         .text(value <= 1 ? "≤1%" : `${value}%`);
 
       // Add connecting lines with bends for 1% and 5%
+      // Code to create bent lines adapted from chatGPT
       let bendXOffset = -3;
       if (value === 1) bendXOffset = -6;
       if (value === 1 || value === 5) {
@@ -560,7 +554,6 @@ class Cartogram {
         vis.tileSizeLegend
           .append("path")
           .attr("d", () => {
-            // TODO -- credit Claude for creating bent line
             // Start at text position + gap
             const startX = labelX + labelXOffset + 5;
             const startY = labelY + labelYOffset;
@@ -616,12 +609,23 @@ class Cartogram {
     // legend title
     vis.pieLegend
       .append("text")
-      .attr("class", "legend-title")
+      .attr("class", "pie-legend-title")
       .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
       .attr("text-anchor", "middle")
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
-      .text("Pie Chart: Racial Distribution of Non-White Population");
+      .text("Pie Chart Legend");
+
+    // legend subtitle
+    vis.pieLegend
+      .append("text")
+      .attr("class", "pie-legend-subtitle")
+      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
+      .attr("y", legendPadding + 5)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .text("Racial Distribution of Non-White Population");
 
     // Add legend entry group
     const legendEntries = vis.pieLegend
@@ -634,7 +638,8 @@ class Cartogram {
     // Append swatches
     legendEntries
       .append("rect")
-      .attr("x", 10)
+      .attr("x", legendPadding)
+      .attr("y", legendPadding)
       .attr("width", swatchSize)
       .attr("height", swatchSize)
       .attr("fill", (d) => vis.pieColourScale(d))
@@ -644,28 +649,9 @@ class Cartogram {
     // Append legend Labels
     legendEntries
       .append("text")
-      .attr("x", swatchSize + 20)
-      .attr("y", swatchSize / 2 + 4)
+      .attr("x", legendPadding + swatchSize + 20)
+      .attr("y", legendPadding + swatchSize / 2 + 4)
       .attr("font-size", "11px")
       .text((d) => d);
-
-    // Append disclaimer
-    vis.pieLegend
-      .append("text")
-      .attr("class", "legend-disclaimer")
-      .attr("y", vis.config.pieLegendHeight - legendPadding * 5)
-      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
-      .text(
-        "Racial categories and data are based on the 2020 US Decennial Census;"
-      );
-
-    vis.pieLegend
-      .append("text")
-      .attr("class", "legend-disclaimer")
-      .attr("y", vis.config.pieLegendHeight - legendPadding * 3.5)
-      .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
-      .text(
-        "Racial data reflects state-wide distribution, not only individuals directly affected."
-      );
   }
 }
