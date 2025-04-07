@@ -507,7 +507,6 @@ class Cartogram {
     vis.pieLegend
       .append("text")
       .attr("class", "legend-title")
-      .attr("y", -vis.pieLegendHeight)
       .attr("x", vis.config.pieLegendWidth / 2 - legendPadding)
       .attr("text-anchor", "middle")
       .attr("font-size", "12px")

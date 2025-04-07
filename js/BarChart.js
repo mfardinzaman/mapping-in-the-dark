@@ -133,19 +133,28 @@ class TimeLine {
         [0, 0],
         [vis.width, vis.height],
       ])
-      .on("brush end", (event) => {
-        if (!event.selection) return;
+      .on("end", (event) => {
+        const selection = event.selection;
 
-        const [x0, x1] = event.selection;
-        const dateRange = [vis.xScale.invert(x0), vis.xScale.invert(x1)];
-        const startDate = vis.xScale.invert(x0);
-        const endDate = vis.xScale.invert(x1);
+        if (selection) {
+          const [x0, x1] = selection;
+          const startDate = vis.xScale.invert(x0);
+          const endDate = vis.xScale.invert(x1);
 
-        window.selectedStartDate = startDate;
-        window.selectedEndDate = endDate;
-        window.selectedDateRange = [startDate, endDate];
-
-        console.log("Selected time range:", dateRange);
+          if (vis.dispatcher) {
+            vis.dispatcher.call("timeRangeChanged", null, {
+              startDate,
+              endDate,
+            });
+          }
+        } else {
+          if (vis.dispatcher) {
+            vis.dispatcher.call("timeRangeChanged", null, {
+              startDate: null,
+              endDate: null,
+            });
+          }
+        }
       });
 
     vis.brushGroup = vis.chart
@@ -235,6 +244,8 @@ class TimeLine {
 
     vis.bisect = d3.bisector((d) => vis.xVal(d)).left;
 
+    vis.bisect = d3.bisector((d) => vis.xVal(d)).left;
+
     vis.renderVis();
   }
 
@@ -265,16 +276,6 @@ class TimeLine {
           d0 = flatData[i - 1],
           d1 = flatData[i],
           d = xPos - vis.xScale(d0.date) > vis.xScale(d1.date) - xPos ? d1 : d0;
-
-        d3.select("#tooltip")
-          .style("display", "block")
-          .style("left", `${vis.xScale(vis.xVal(d)) + leftOffset}px`)
-          .style("top", `${event.pageY - vis.config.tooltipPadding}px`)
-          .html(
-            `<div class="tooltip-title"><strong>${d.monthName} ${
-              d.year
-            }</strong>: ${vis.format(d.total)} outages</div>`
-          );
 
         vis.hoverLine
           .raise()

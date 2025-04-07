@@ -55,6 +55,19 @@ h2 {
   pointer-events: none;
 }
 
+/* .hidden {
+  display: none;
+} */
+
+.map-title {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 1rem;
+  color: #1a1a1a;
+}
+
 .segmented-control-container {
   display: flex;
   align-items: center;
@@ -146,7 +159,18 @@ h2 {
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-  /* margin-left: 0.5rem; */
+}
+
+#reset-button img {
+  width: 12px;
+  height: 12px;
+  transition: filter 0.3s ease;
+  padding-right: 10px;
+}
+
+#reset-button:hover img {
+  filter: invert(34%) sepia(93%) saturate(7417%) hue-rotate(358deg)
+    brightness(94%) contrast(101%);
 }
 
 #reset-button img {
