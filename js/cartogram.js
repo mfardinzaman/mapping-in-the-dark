@@ -143,6 +143,13 @@ class Cartogram {
       .innerRadius(0)
       .outerRadius(minSquareSize * 0.3);
 
+    vis.svg
+      .append("text")
+      .attr("class", "data-disclaimer")
+      .attr("x", "500px")
+      .attr("y", "30px")
+      .text("Disclaimer: Data outside 2020 unavailable");
+
     vis.updateVis();
     vis.renderTileColorLegend();
     vis.renderTileSizeLegend();
