@@ -8,24 +8,25 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1360,
-      containerHeight: 970,
+      containerWidth: 1600,
+      containerHeight: 785,
       margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
       maxSquareSize: 200,
       squareSpacing: 80,
       tileColourLegendBottom: 10,
-      tileColourLegendLeft: 150,
+      tileColourLegendLeft: 430,
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
+      startingMapCoordinate: 300,
       numBins: 11,
       tooltipPadding: 10,
-      tileSizeLegendBottom: 340,
-      tileSizeLegendLeft: 320,
+      tileSizeLegendBottom: 10,
+      tileSizeLegendLeft: 0,
       tileSizeLegendHeight: 280,
       tileSizeLegendWidth: 300,
-      pieLegendBottom: 640,
-      pieLegendLeft: 270,
+      pieLegendBottom: 280,
+      pieLegendLeft: 0,
       pieLegendHeight: 220,
       pieLegendWidth: 350,
     };
@@ -195,7 +196,7 @@ class Cartogram {
     // Calculate x-coordinate for each State
     let currentX = -1;
     let currentXCoord = -1;
-    let currentMaxX = -1;
+    let currentMaxX = vis.config.startingMapCoordinate;
 
     vis.cartogramData.forEach((d) => {
       // if X-coordinate is the same, get the max tile size of the column
