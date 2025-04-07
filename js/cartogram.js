@@ -5,10 +5,10 @@ class Cartogram {
    * @param {Array}
    * @param {Array}
    */
-  constructor(_config, _data, _raceCategories) {
+  constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1250,
+      containerWidth: 1350,
       containerHeight: 1000,
       margin: { top: 120, right: 20, bottom: 20, left: 20 },
       minSquareSize: 70,
@@ -29,7 +29,17 @@ class Cartogram {
       pieLegendWidth: 350,
     };
     this.data = _data;
+    this.demographicData = _demographicData;
     this.raceCategories = _raceCategories;
+    this.dispatcher = _dispatcher;
+
+    this.dispatcher.on('timeRangeChanged.cartogram', ({ startDate, endDate }) => {
+      if (isMapView) return;
+      this.selectedStartDate = startDate;
+      this.selectedEndDate = endDate;
+      this.updateVis();
+    });
+
     this.initVis();
   }
 
@@ -70,12 +80,11 @@ class Cartogram {
 
     // Adds tile size scaling based on population density
     // M4 TODO: change scaling depending on data? May want to use a scale other than square root
+    // manualy scale
+    // TODO: Consider whether to dynamically or manually scale
     vis.tileSizeScale = d3
       .scaleLinear()
-      .domain([
-        d3.min(vis.data, (d) => d.proportionAffected),
-        d3.max(vis.data, (d) => d.proportionAffected),
-      ])
+      .domain([0, 100])
       .range([minSquareSize, maxSquareSize]);
 
     // Create a group for the tile grid
@@ -149,14 +158,43 @@ class Cartogram {
    */
   updateVis() {
     let vis = this;
+    let filteredData;
+    if (this.selectedStartDate) {
+      const start = vis.selectedStartDate;
+      const end = vis.selectedEndDate;
+
+
+      filteredData = vis.data.filter(item => {
+        return start <= item.date && item.date <= end;
+      });
+      if (filteredData.length === 0) filteredData = vis.data;
+    } else {
+      filteredData = vis.data
+    }
+
     const { squareSpacing } = vis.config;
+    const groupedData = d3.groups(filteredData, d => d.State);
+
+    // TODO: filter months based on slider from bar chart
+    // Calculate the average value for each state
+    const averagedData = Array.from(groupedData, ([State, values]) => {
+      const proportionAffected = d3.mean(values, d => d.proportionAffected);
+      return { State, proportionAffected };
+    });
+
+    // combine datasets to get the cartogram data
+    vis.cartogramData = averagedData.map((d1, index) => ({
+      ...d1,
+      ...vis.demographicData[index]
+    }));
+
 
     // Calculate x-coordinate for each State
     let currentX = -1;
     let currentXCoord = -1;
     let currentMaxX = -1;
 
-    vis.data.forEach((d) => {
+    vis.cartogramData.forEach((d) => {
       // if X-coordinate is the same, get the max tile size of the column
       if (currentX == d.x) {
         if (vis.tileSizeScale(d.proportionAffected) > currentMaxX) {
@@ -176,7 +214,7 @@ class Cartogram {
     let currentYCoord = -1;
     let nextYCoord = -1;
     // TODO (optional): refactor this to calculate both x-coordinate and y-coordinate in 1 loop instead of 2
-    vis.data.forEach((d) => {
+    vis.cartogramData.forEach((d) => {
       // check if tile is in the same column
       // if tiles aren't adjacent to eachother, place new tile based on y value and spacing
       // otherwise ignore conditional statements and place new tile vertically below previous tile
@@ -195,15 +233,15 @@ class Cartogram {
     });
 
     // Center align x-coordinates
-    vis.data.forEach((d) => {
-      let currentData = vis.data.filter((filtered) => filtered.x == d.x);
+    vis.cartogramData.forEach((d) => {
+      let currentData = vis.cartogramData.filter((filtered) => filtered.x == d.x);
       let currentMax = d3.max(currentData, (f) => f.proportionAffected);
       if (currentMax != d.proportionAffected) {
         d.xCoord =
           d.xCoord +
           (vis.tileSizeScale(currentMax) -
             vis.tileSizeScale(d.proportionAffected)) /
-            2;
+          2;
       }
     });
 
@@ -221,7 +259,7 @@ class Cartogram {
     // Create rectangles for each State
     vis.tileGrid
       .selectAll("rect")
-      .data(vis.data)
+      .data(vis.cartogramData)
       .join("rect")
       .attr("x", (d) => d.xCoord)
       .attr("y", (d) => d.yCoord)
@@ -235,14 +273,14 @@ class Cartogram {
 
     // Create pie charts
     vis.tileGrid
-      .selectAll("pie-chart")
-      .data(vis.data)
+      .selectAll(".pie-chart")
+      .data(vis.cartogramData)
       .join("g")
+      .attr('class', 'pie-chart')
       .attr(
         "transform",
         (d) =>
-          `translate(${
-            d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2
+          `translate(${d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2
           },${d.yCoord + vis.tileSizeScale(d.proportionAffected) / 2})`
       )
       .selectAll("path")
@@ -256,7 +294,7 @@ class Cartogram {
     // Add text for each State
     vis.tileGrid
       .selectAll("text")
-      .data(vis.data)
+      .data(vis.cartogramData)
       .join("text")
       .attr("x", (d) => d.xCoord + vis.tileSizeScale(d.proportionAffected) / 2)
       .attr("y", (d) => d.yCoord + vis.tileSizeScale(d.proportionAffected) / 10)
@@ -471,9 +509,8 @@ class Cartogram {
             const endY = labelY;
 
             // Horizontal line to square
-            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${
-              labelX + 10
-            },${endY}`;
+            return `M${startX},${startY} L${bendX},${startY} L${bendX},${endY} L${labelX + 10
+              },${endY}`;
           })
           .attr("fill", "none")
           .attr("stroke", "black")

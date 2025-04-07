@@ -16,14 +16,16 @@ const dispatcher = d3.dispatch(
 Promise.all([
   d3.json("../data/geometry_data.geojson"),
   d3.csv("../data/aggreted_power_outages_complete_no_pr.csv"),
-  d3.csv("data/cartogram_avg_outage.csv"),
+  d3.csv("../data/cartogram_monthly_outages.csv"),
+  d3.csv("../data/cartogram_grid_and_demographic_data.csv"),
   d3.csv("../data/pops_2019_2023_county.csv"),
 ])
   .then((data) => {
     geoData = data[0];
     outageData = data[1];
     const cartogramData = data[2];
-    const popData = data[3];
+    const cartogramDemographicData = data[3];
+    const popData = data[4];
 
     // ==========================================
     // Time line
@@ -120,14 +122,9 @@ Promise.all([
     // Cartogram
     // ==========================================
     // prepare cartogram + piechart data:
-    cartogramData.forEach((d) => {
+    cartogramDemographicData.forEach((d) => {
       d.x = +d.x;
       d.y = +d.y - 1;
-
-      d.total = +d.total;
-      d.affected = +d["average_customers_out"];
-      d.proportionAffected = (d.affected / d.total) * 100;
-
       d.white = +d["White alone"] || 0;
       d.asian = +d["Asian alone"] || 0;
       d.black = +d["Black or African American alone"] || 0;
@@ -142,17 +139,25 @@ Promise.all([
 
       // keep pieData in this order: other, indian, hawaiin, asinan, mixed, black
       d.pieData = [
-        { value: d.other, race: "Other" },
-        { value: d.indian, race: "American Indian/Alaska Native" },
-        { value: d.hawaiin, race: "Native Hawaiin/Other Pacific Islander" },
-        { value: d.asian, race: "Asian" },
-        { value: d.mixed, race: "Mixed Race" },
-        { value: d.black, race: "Black/African American" },
+        { value: d.other, race: "other" },
+        { value: d.indian, race: "indian" },
+        { value: d.hawaiin, race: "hawaiin" },
+        { value: d.asian, race: "asian" },
+        { value: d.mixed, race: "mixed" },
+        { value: d.black, race: "black" },
       ];
+    })
+
+    // needed values: proportionAffected
+    cartogramData.forEach((d) => {
+      d.total = +d.total;
+      d.affected = +d["avg_customers_out"];
+      d.proportionAffected = (d.affected / d.total) * 100;
+      d.date = new Date(`2020-${String(+d["month"]).padStart(2, "0")}`)
     });
 
     const raceCategories = Array.from(
-      new Set(cartogramData.flatMap((d) => d.pieData.map((p) => p.race)))
+      new Set(cartogramDemographicData.flatMap((d) => d.pieData.map((p) => p.race)))
     );
 
     // Initialize the cartogram
@@ -162,7 +167,9 @@ Promise.all([
         // Optional: other configurations
       },
       cartogramData,
-      raceCategories
+      cartogramDemographicData,
+      raceCategories,
+      dispatcher
     );
 
     d3.selectAll("#map-view-selector input").on("change", function (event) {
@@ -172,7 +179,6 @@ Promise.all([
       d3.select("#map").classed("hidden", !isMapView);
       d3.select("#cartogram").classed("hidden", isMapView);
 
-      updateTitle(selectedStartDate, selectedEndDate);
       timeline.brush.move(timeline.brushGroup, null);
 
       if (!isMapView) d3.select("#reset-button").node().click();
@@ -225,11 +231,15 @@ function updateTitle(startDate, endDate) {
     } else {
       const startYear = startDate.getFullYear();
       const endYear = endDate.getFullYear();
-
+      console.log(startDate)
       if (startYear === 2020 && endYear === 2020) {
         dateText = `(${formatter(startDate)} – ${formatter(endDate)})`;
+      } else if (startYear === 2020) {
+        dateText = `${formatter(startDate)} - Dec 2020`
+      } else if (endYear === 2020) {
+        dateText = `Jan 2020 - ${formatter(endDate)}`
       } else {
-        // If either of the dates is outside of 2020, display "2020"
+        // If both of the dates are outside of 2020, display "2020"
         dateText = "(2020)";
       }
     }
