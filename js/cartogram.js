@@ -9,7 +9,7 @@ class Cartogram {
     this.config = {
       parentElement: _config.parentElement,
       containerWidth: 1550,
-      containerHeight: 900,
+      containerHeight: 700,
       margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
       maxSquareSize: 150,
