@@ -272,7 +272,7 @@ class Cartogram {
       })
       .attr("stroke", "slate-grey")
       .attr("stroke-width", 1)
-      .on("mouseover", function (event, d) {
+      .on("mousemove", function (event, d) {
         d3.select(this).classed("tile-hover", true);
         d3
           .select("#tooltip")
@@ -338,7 +338,7 @@ class Cartogram {
       .attr("fill", (d) => vis.pieColourScale(d.data.race))
       .style("stroke", "white")
       .style("stroke-width", "0.75px")
-      .on("mouseover", function (event, d) {
+      .on("mousemove", function (event, d) {
         d3.select(this).classed("piechart-hover", true);
         d3
           .select("#tooltip")
