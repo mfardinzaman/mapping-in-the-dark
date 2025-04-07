@@ -1,64 +1,76 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>D3 Project Starter Template</title>
-    <meta charset="UTF-8">
+  <head>
+    <title>CPSC447 project</title>
+    <meta charset="UTF-8" />
     <link rel="icon" href="data:;base64,iVBORwOKGO=" />
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>    
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
     <!-- Add HTML content, SVG drawing area, ... -->
-     
+    <h1>Mapping the Dark</h1>
+    <h2>An Interactive Visualization of US Power Outages</h2>
+
     <!-- Selection Widget -->
     <div id="map-view-selector" class="segmented-control-container">
-        <span class="segmented-label">Select map view:</span>
+      <span class="segmented-label">Select map view:</span>
 
-        <div class="segmented-controls">
-            <input type="radio" id="select-choropleth" name="map-view" checked>
-            <label for="select-choropleth">Map View</label>
-            
-            <input type="radio" id="select-cartogram" name="map-view">
-            <label for="select-cartogram">Grid View</label>
+      <div class="segmented-controls">
+        <input type="radio" id="select-choropleth" name="map-view" checked />
+        <label for="select-choropleth">Map View</label>
 
-            <div class="slider"></div>
-        </div>
+        <input type="radio" id="select-cartogram" name="map-view" />
+        <label for="select-cartogram">Grid View</label>
+
+        <div class="slider"></div>
+      </div>
     </div>
 
     <div id="chart"></div>
-    <h2 id="map-title" class="map-title">Outages per person (2019 — 2023)</h2>
+    <h2 id="map-title" class="map-title">
+      Map of Power Outages per Person (2019 — 2023)
+    </h2>
     <div id="view-container">
-        <div id="map">
-            <div id="region-selector" class="segmented-control-container">
-                <span class="segmented-label">Select by:</span>
+      <div id="map">
+        <div id="region-selector" class="segmented-control-container">
+          <span class="segmented-label">Select by:</span>
 
-                <div class="segmented-controls">
-                    <input type="radio" id="county" name="region" checked>
-                    <label for="county">County</label>
-                    
-                    <input type="radio" id="state" name="region">
-                    <label for="state">State</label>
+          <div class="segmented-controls">
+            <input type="radio" id="county" name="region" checked />
+            <label for="county">County</label>
 
-                    <div class="slider"></div>
-                </div>
+            <input type="radio" id="state" name="region" />
+            <label for="state">State</label>
 
-                <div class="separator"></div>
+            <div class="slider"></div>
+          </div>
 
-                <button id="reset-button" type="button">
-                    <img src="assets/images/reset.svg">
-                </button>
-            </div>
+          <div class="separator"></div>
+
+          <button id="reset-button" type="button">
+            <img src="assets/images/reset.svg" />
+          </button>
         </div>
-        <div id="cartogram" class="hidden"></div>
+      </div>
+      <div id="cartogram" class="hidden"></div>
     </div>
     <div id="tooltip"></div>
-    
+
     <!-- D3 bundle -->
     <script src="js/d3.v6.min.js"></script>
+
+    <!-- Google fonts imports -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Great+Vibes&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Monoton&family=Rubik+80s+Fade&family=Rubik+Pixels&family=Space+Grotesk:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Our JS code -->
     <script src="js/BarChart.js"></script>
     <script src="js/choroplethMap.js"></script>
     <script src="js/cartogram.js"></script>
     <script src="js/main.js"></script>
-</body>
+  </body>
 </html>
