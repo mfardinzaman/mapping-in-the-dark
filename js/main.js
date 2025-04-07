@@ -4,6 +4,8 @@ let geoData,
   choroplethMap,
   selectedStartDate,
   selectedEndDate;
+
+let isMapView = true;
 const dispatcher = d3.dispatch(
   "selectCounty",
   "resetCounty",
@@ -164,26 +166,16 @@ Promise.all([
     );
 
     d3.selectAll("#map-view-selector input").on("change", function (event) {
-      const selected = d3.select(this).attr("id"),
-        isMapView = selected == "select-choropleth";
+      const selected = d3.select(this).attr("id");
+      isMapView = selected == "select-choropleth";
 
       d3.select("#map").classed("hidden", !isMapView);
       d3.select("#cartogram").classed("hidden", isMapView);
 
-      console.log(isMapView); // TODO MUNA -- why is title not changing?
-      console.log(d3.select("#map-title").node());
-      // console.log(document.getElementById("map-title"));
-      console.log(document.querySelectorAll(".map-title"));
-
-      d3.select(".map-title").text(
-        isMapView
-          ? "Power Outages per Person (2019 – 2023)"
-          : "Grid Representation of Power Outages by County"
-      );
+      updateTitle(selectedStartDate, selectedEndDate);
+      timeline.brush.move(timeline.brushGroup, null);
 
       if (!isMapView) d3.select("#reset-button").node().click();
-
-      timeline.brush.move(timeline.brushGroup, null);
     });
   })
   .catch((e) => console.error(e));
@@ -214,17 +206,23 @@ dispatcher.on("regionChanged", (region) => {
 dispatcher.on("timeRangeChanged.main", ({ startDate, endDate }) => {
   selectedStartDate = startDate;
   selectedEndDate = endDate;
-
-  const title = d3.select("#map-title");
-
-  if (!startDate || !endDate) {
-    title.text("Power Outages per Person (2019 – 2023)");
-  } else {
-    const formatter = d3.timeFormat("%b %Y");
-    title.text(
-      `Power Outages per Person  (${formatter(startDate)} – ${formatter(
-        endDate
-      )})`
-    );
-  }
+  updateTitle(startDate, endDate);
 });
+
+function updateTitle(startDate, endDate) {
+  const title = d3.select("#map-title");
+  const formatter = d3.timeFormat("%b %Y");
+
+  const dateText =
+    !startDate || !endDate
+      ? "(2019 – 2023)"
+      : `(${formatter(startDate)} – ${formatter(endDate)})`;
+
+  console.log(dateText);
+  console.log(isMapView);
+  const titleText = isMapView
+    ? `Map of Power Outages per Person ${dateText}`
+    : `Proportion of People Affected by Outages ${dateText}`;
+
+  title.text(titleText);
+}
