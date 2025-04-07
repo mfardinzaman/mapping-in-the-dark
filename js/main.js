@@ -182,6 +182,7 @@ Promise.all([
       timeline.brush.move(timeline.brushGroup, null);
 
       if (!isMapView) d3.select("#reset-button").node().click();
+      timeline.updateVis();
     });
   })
   .catch((e) => console.error(e));
