@@ -36,10 +36,15 @@ h2 {
   position: relative;
   width: 1300px;
   margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-#map{
-  transform: translate(0%, 0%);
+#map {
+  position: relative;
+  border-radius: 15px;
+  background: rgb(152, 173, 194);
 }
 
 #cartogram {
@@ -69,16 +74,20 @@ h2 {
 }
 
 .segmented-control-container {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   top: 3px;
-  left: 50%;
   z-index: 10;
   background: #e2e2e9;
   border-radius: 0.3rem;
   width: max-content;
   margin: 0px auto;
+}
+
+#map.segmented-control-container {
+  top: 10px
 }
 
 .segmented-label {

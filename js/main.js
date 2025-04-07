@@ -194,8 +194,13 @@ dispatcher.on("viewChanged", (selected) => {
 
   d3.select("#map").classed("hidden", !isMapView);
   d3.select("#cartogram").classed("hidden", isMapView);
+  d3.select("#spacer").classed("hidden", isMapView);
 
   timeline.brush.move(timeline.brushGroup, null);
+  dispatcher.call("timeRangeChanged", null, {
+    startDate: null,
+    endDate: null,
+  });
 
   if (!isMapView) d3.select("#reset-button").node().click();
   timeline.updateVis();
