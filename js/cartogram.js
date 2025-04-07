@@ -8,7 +8,7 @@ class Cartogram {
   constructor(_config, _data, _demographicData, _raceCategories, _dispatcher) {
     this.config = {
       parentElement: _config.parentElement,
-      containerWidth: 1550,
+      containerWidth: 1480,
       containerHeight: 700,
       margin: { top: 120, right: 20, bottom: 20, left: 10 },
       minSquareSize: 70,
@@ -18,7 +18,7 @@ class Cartogram {
       tileColourLegendLeft: 450,
       tileColourLegendRectHeight: 12,
       tileColourLegendRectWidth: 500,
-      startingMapCoordinate: 400,
+      startingMapCoordinate: 350,
       numBins: 11,
       tooltipPadding: 10,
       tileSizeLegendBottom: 120,
