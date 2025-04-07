@@ -148,7 +148,6 @@ Promise.all([
       ];
     });
 
-    // needed values: proportionAffected
     cartogramData.forEach((d) => {
       d.total = +d.total;
       d.affected = +d["avg_customers_out"];
@@ -174,6 +173,7 @@ Promise.all([
       dispatcher
     );
 
+    // create listener for view selector
     d3.selectAll("#map-view-selector input").on("change", function (event) {
       const selected = d3.select(this).attr("id");
       isMapView = selected == "select-choropleth";
@@ -250,7 +250,7 @@ function updateTitle(startDate, endDate) {
 
   const titleText = isMapView
     ? `Map of Power Outages per Person ${dateText}`
-    : `Proportion of People Affected by Outages ${dateText}`;
+    : `Average Proportion of People Affected by Outages Per Month ${dateText}`;
 
   title.text(titleText);
 }
