@@ -343,13 +343,15 @@ class Cartogram {
       .style("stroke", "white")
       .style("stroke-width", "0.75px")
       .on("mousemove", function (event, d) {
+        const format = d3.format(",");
+
         d3.select(this).classed("piechart-hover", true);
         d3
           .select("#tooltip")
           .style("display", "block")
           .style("left", `${event.pageX + vis.config.tooltipPadding}px`)
           .style("top", event.pageY + vis.config.tooltipPadding + "px").html(`
-            <div class="tooltip-title"><strong>${d.data.race}</strong>: ${d.value} people</div>
+            <div class="tooltip-title"><strong>${d.data.race}</strong>: ${format(d.value)} people</div>
           `);
       })
       .on("mouseleave", function (event, d) {
