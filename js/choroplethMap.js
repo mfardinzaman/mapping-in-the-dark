@@ -58,6 +58,10 @@ class ChoroplethMap {
         `translate(${vis.config.margin.left}, ${vis.config.margin.top})`
       );
 
+    const mapOffset = 80;
+    vis.mapArea = vis.chart.append('g')
+      .attr('transform', `translate(${mapOffset}, 0)`);
+
     // Initialize projection and path generator
     vis.projection = d3.geoAlbersUsa();
     vis.geoPath = d3.geoPath().projection(vis.projection);
@@ -74,13 +78,14 @@ class ChoroplethMap {
       .attr("id", "legend-gradient");
 
     // Invisible rectangle to reset county selection
-    vis.chart
+    vis.mapArea
       .append("rect")
       .attr("x", 0)
       .attr("y", 0)
       .attr("width", vis.config.width)
       .attr("height", vis.config.height)
       .attr("fill", "transparent")
+      .attr("transform", `translate(-${mapOffset}, 0)`)
       .on("click", (event) => {
         vis.dispatcher.call("resetCounty", event);
       });
@@ -117,7 +122,7 @@ class ChoroplethMap {
     vis.instructionsGroup = vis.svg
       .append("g")
       .attr("class", "instructions")
-      .attr("transform", `translate(${10}, ${80})`);
+      .attr("transform", `translate(${20}, ${80})`);
 
     // Append background rectangle for instructions
     vis.instructionsGroup
@@ -359,7 +364,7 @@ class ChoroplethMap {
     // Define scale of projection
     vis.projection.fitSize([vis.config.width, vis.config.height], vis.data);
 
-    vis.countyPaths = vis.chart
+    vis.countyPaths = vis.mapArea
       .selectAll(".county")
       .data(vis.data.features, (d) => d.properties.fips_code)
       .join("path")
