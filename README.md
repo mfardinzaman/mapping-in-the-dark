@@ -1,4 +1,6 @@
 # Mapping the Dark: An Interactive Visualization of U.S. Power Outages (2019 - 2023)
+![image15](https://github.com/user-attachments/assets/7da437d7-1e48-4980-9e9f-9bac17b79fb6)
+**DEMO LINK:** https://youtu.be/pC0ikUwIQN4 
 ### Group Members:
 | Name | Student ID | Email |
 | :-- | :-- | :-- |
@@ -7,7 +9,7 @@
 | Mo Fardinzaman | 57779167 | mfardinzaman@gmail.com |
 | William Ho | 42307041 | who64@students.cs.ubc.ca |
 
-# Overview
+## Overview
 
 Power outages are a widespread issue in the United States, affecting one in four households
 in 2023[^1]. However, the scale, frequency, and distribution of outages may vary significantly
@@ -24,8 +26,6 @@ communities. By making complex outage data more accessible, this project helps d
 informed discussions around energy infrastructure and identify imbalances in consistent
 access to energy among various populations.
 
-[^1]: P. Madamba, “About 1 in 4 Households Experienced a Power Outage in the Span of a Year,” census.gov. Accessed: Feb. 02, 2025. [Online]. Available: https://www.census.gov/library/stories/2024/10/power-outages.html
-
 This visualization is designed with policymakers, infrastructure planners, and advocacy
 groups in mind, hoping to provide insights that could help identify regions most in need of
 power grid improvements. Additionally, it serves as a resource for the general public to
@@ -33,3 +33,5 @@ understand the intersectionality between power outages and their impact on diffe
 communities. By making complex outage data more accessible, this project helps drive
 informed discussions around energy infrastructure and identify imbalances in consistent
 access to energy among various populations.
+
+[^1]: P. Madamba, “About 1 in 4 Households Experienced a Power Outage in the Span of a Year,” census.gov. Accessed: Feb. 02, 2025. [Online]. Available: https://www.census.gov/library/stories/2024/10/power-outages.html
